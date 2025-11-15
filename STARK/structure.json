@@ -1,0 +1,65 @@
+{
+  "sites": [
+    {
+      "name": "StarkTower-NYC",
+      "description": "Stark Industries Global Headquarters, New York City, USA"
+    },
+    {
+      "name": "Malibu-Mansion",
+      "description": "Tony Stark's primary residence and private lab, Malibu, CA, USA"
+    },
+    {
+      "name": "Dallas-Branch",
+      "description": "Stark Industries U.S. Manufacturing and Operations Center, Dallas, TX, USA"
+    },
+    {
+      "name": "Nagasaki-Facility",
+      "description": "Stark Industries Overseas R&D and Weapons Facility, Nagasaki, Japan"
+    },
+    {
+      "name": "Amsterdam-Hub",
+      "description": "Stark Industries European Administration and Logistics Hub, Amsterdam, Netherlands"
+    }
+  ],
+  "subnets": [
+    {
+      "cidr": "66.218.180.0/22",
+      "site": "StarkTower-NYC",
+      "location": "New York, USA"
+    },
+    {
+      "cidr": "4.150.216.0/22",
+      "site": "Malibu-Mansion",
+      "location": "Malibu, CA, USA"
+    },
+    {
+      "cidr": "50.222.72.0/22",
+      "site": "Dallas-Branch",
+      "location": "Dallas, TX, USA"
+    },
+    {
+      "cidr": "14.206.0.0/22",
+      "site": "Nagasaki-Facility",
+      "location": "Nagasaki, Japan"
+    },
+    {
+      "cidr": "37.74.124.0/22",
+      "site": "Amsterdam-Hub",
+      "location": "Amsterdam, Netherlands"
+    }
+  ],
+  "sitelinks": [
+    {
+      "name": "Default-InterSite-Transport",
+      "sites": [
+        "StarkTower-NYC",
+        "Malibu-Mansion",
+        "Dallas-Branch",
+        "Nagasaki-Facility",
+        "Amsterdam-Hub"
+      ],
+      "cost": 100
+    }
+  ],
+  "ous": []
+}
