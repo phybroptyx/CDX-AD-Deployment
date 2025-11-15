@@ -1,0 +1,32 @@
+{
+  "gpos": [
+    {
+      "name": "Baseline Workstation Policy",
+      "id": null,
+      "backupPath": null,
+      "description": "Baseline hardening for workstation clients"
+    },
+    {
+      "name": "Baseline Server Policy",
+      "id": null,
+      "backupPath": null,
+      "description": "Baseline hardening for servers"
+    }
+  ],
+  "links": [
+    {
+      "gpoName": "Baseline Workstation Policy",
+      "targetOu": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites,DC=example,DC=lab",
+      "enforced": false,
+      "enabled": true,
+      "linkOrder": 1
+    },
+    {
+      "gpoName": "Baseline Server Policy",
+      "targetOu": "OU=Servers,OU=Operations,OU=HQ,OU=Sites,DC=example,DC=lab",
+      "enforced": false,
+      "enabled": true,
+      "linkOrder": 1
+    }
+  ]
+}
