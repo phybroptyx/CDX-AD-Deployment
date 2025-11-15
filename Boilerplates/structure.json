@@ -1,0 +1,65 @@
+{
+  "sites": [
+    {
+      "name": "site-1",
+      "description": "Site 1 description, City, Country"
+    },
+    {
+      "name": "site-2",
+      "description": "Site 2 description, City, Country"
+    },
+    {
+      "name": "site-3",
+      "description": "Site 3 description, City, Country"
+    },
+    {
+      "name": "...",
+      "description": "..."
+    },
+    {
+      "name": "site-x",
+      "description": "Site x description, City, Country"
+    }
+  ],
+  "subnets": [
+    {
+      "cidr": "subnet-1-cidr",
+      "site": "site",
+      "location": "city, country"
+    },
+    {
+      "cidr": "subnet-2-cidr",
+      "site": "site",
+      "location": "city, country"
+    },
+    {
+      "cidr": "subnet-3-cidr",
+      "site": "site",
+      "location": "city, country"
+    },
+    {
+      "cidr": "subnet-...-cidr",
+      "site": "site",
+      "location": "city, country"
+    },
+    {
+      "cidr": "subnet-x-cidr",
+      "site": "site",
+      "location": "city, country"
+    }
+  ],
+  "sitelinks": [
+    {
+      "name": "Default-InterSite-Transport",
+      "sites": [
+        "site-1",
+        "site-2",
+        "site-3",
+        "site-...",
+        "site-x"
+      ],
+      "cost": 100
+    }
+  ],
+  "ous": []
+}
