@@ -354,15 +354,30 @@ function Invoke-DeploySitesAndOUs {
     # OUs
     Write-Host "`n[2] Creating Organizational Units..." -ForegroundColor Cyan
 
+    # Sort by depth of parent_ou so parents are created before children
     $sortedOUs = $StructureConfig.ous | Sort-Object {
-        ([regex]::Matches($_.parent_dn, 'OU=').Count)
+        if ([string]::IsNullOrWhiteSpace($_.parent_ou)) {
+            0
+        } else {
+            ([regex]::Matches($_.parent_ou, 'OU=').Count)
+        }
     }
 
     foreach ($ou in $sortedOUs) {
-        $name     = $ou.name
-        $parentDn = $ou.parent_dn
-        $desc     = $ou.description
-        $dn       = "OU=$name,$parentDn"
+        $name      = $ou.name
+        $parentRel = $ou.parent_ou
+        $desc      = $ou.description
+
+        # Build the parent path (absolute DN)
+        if ([string]::IsNullOrWhiteSpace($parentRel)) {
+            # Top-level OU directly under the domain
+            $parentPath = $DomainDN
+        }
+        else {
+            $parentPath = "$parentRel,$DomainDN"
+        }
+
+        $dn = "OU=$name,$parentPath"
 
         $existing = Get-ADOrganizationalUnit -LDAPFilter "(distinguishedName=$dn)" -ErrorAction SilentlyContinue
         if ($existing) {
@@ -371,13 +386,12 @@ function Invoke-DeploySitesAndOUs {
         else {
             Write-Host "Creating OU: $dn" -ForegroundColor Green
             New-ADOrganizationalUnit -Name $name `
-                                     -Path $parentDn `
+                                     -Path $parentPath `
                                      -Description $desc `
                                      -ProtectedFromAccidentalDeletion $true `
                                      -WhatIf:$WhatIf | Out-Null
         }
     }
-}
 
 function Invoke-DeployGroups {
     param(
