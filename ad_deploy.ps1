@@ -142,8 +142,29 @@ function Ensure-ActiveDirectoryDomain {
         throw "Aborting: No domain found and user chose not to create a new forest."
     }
 
-    # Import ADDSDeployment for Install-ADDSForest
-    Import-Module ADDSDeployment -ErrorAction Stop
+    # Ensure ADDSDeployment module exists; install AD DS role if missing
+    if (-not (Get-Module -ListAvailable -Name ADDSDeployment)) {
+        Write-Warning "[Domain] ADDSDeployment module is not available. Installing Active Directory Domain Services role..."
+
+        # Try installing AD DS and management tools
+        try {
+            Install-WindowsFeature AD-Domain-Services -IncludeManagementTools -ErrorAction Stop | Out-Null
+            Write-Host "[Domain] AD DS role installed successfully. A reboot may be required." -ForegroundColor Green
+        }
+        catch {
+            throw "Failed to install Active Directory Domain Services role: $_"
+        }
+    }
+
+    # Attempt to load the module after installation
+    try {
+        Import-Module ADDSDeployment -ErrorAction Stop
+        Write-Host "[Domain] ADDSDeployment module successfully loaded." -ForegroundColor Green
+    }
+    catch {
+        throw "ADDSDeployment module still not available after install. A reboot may be required."
+    }
+
 
     # Prompt for domain details if not provided
     if (-not $DomainFQDNParam) {
