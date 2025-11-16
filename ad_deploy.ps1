@@ -3,21 +3,17 @@
     Master Active Directory deployment script for lab "exercises".
 
 .DESCRIPTION
-    Reads configuration from JSON files under:
-        EXERCISES\<ExerciseName>\
-
-    And builds, in order:
-      1. AD Sites, Subnets, Site Links
-      2. AD OU structure
-      3. AD Groups
-      4. AD Services (DNS, etc.)
-      5. AD GPOs and Links
-      6. AD Computer objects
-      7. AD User accounts and group memberships
+    - If an AD domain already exists:
+        * Autodetects domain info (or uses overrides).
+        * Deploys Sites, OUs, Groups, DNS, GPOs, Computers, Users from JSON.
+    - If no AD domain exists:
+        * Prompts for domain details and credentials.
+        * Creates a new AD forest on this server.
+        * Instructs you to reboot and rerun to apply the exercise config.
 
 .NOTES
-    - Run as a Domain Admin with RSAT tools installed.
-    - Designed to be reusable across multiple exercises.
+    - Run as a local admin (pre-forest) or Domain Admin (post-forest).
+    - Requires RSAT: ActiveDirectory, ADDSDeployment, DnsServer, GroupPolicy.
 #>
 
 [CmdletBinding()]
@@ -31,7 +27,7 @@ param(
     # Optional: override full config path directly
     [string]$ConfigPath,
 
-    # Optional: override domain info; otherwise auto-detected/prompted
+    # Optional: override domain info; otherwise auto-detected or prompted
     [string]$DomainFQDN,
     [string]$DomainDN,
 
@@ -39,10 +35,9 @@ param(
     [switch]$WhatIf
 )
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Resolve config path based on exercise layout
-# -----------------------------------------------------------------------------
-
+# ---------------------------------------------------------------------------
 if (-not $ConfigPath) {
     if (-not $ExerciseName) {
         $ExerciseName = Read-Host "Enter exercise name (e.g., CHILLED_ROCKET)"
@@ -59,15 +54,42 @@ Write-Host "Exercises Root : $ExercisesRoot"
 Write-Host "Exercise Name  : $ExerciseName"
 Write-Host "Config Path    : $ConfigPath`n"
 
-# -----------------------------------------------------------------------------
-# Module imports
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Prerequisite checks
+# ---------------------------------------------------------------------------
+function Test-Prerequisites {
+    Write-Host "[Prereq] Checking environment..." -ForegroundColor Cyan
 
-Import-Module ActiveDirectory -ErrorAction Stop
+    # Basic OS check (not bulletproof, but enough to warn)
+    $os = Get-CimInstance -ClassName Win32_OperatingSystem
+    if ($os.ProductType -eq 1) {
+        Write-Warning "This appears to be a client OS (e.g., Windows 10/11). AD DS deployment typically runs on Windows Server."
+    }
 
-# -----------------------------------------------------------------------------
+    # Required modules
+    $requiredModules = @("ActiveDirectory", "ADDSDeployment", "DnsServer", "GroupPolicy")
+
+    foreach ($mod in $requiredModules) {
+        $found = Get-Module -ListAvailable -Name $mod
+        if (-not $found) {
+            Write-Warning "Required module not found: $mod. Some functionality may be skipped or fail."
+        }
+        else {
+            Write-Host "[OK] Module available: $mod" -ForegroundColor DarkGreen
+        }
+    }
+
+    Write-Host "[Prereq] Check complete.`n" -ForegroundColor Cyan
+}
+
+Test-Prerequisites
+
+# We can import AD module even pre-domain; some cmdlets (like Get-ADDomain) will fail until a forest exists.
+Import-Module ActiveDirectory -ErrorAction SilentlyContinue | Out-Null
+
+# ---------------------------------------------------------------------------
 # Helper: Load JSON config from the exercise folder
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 function Get-JsonConfig {
     param(
         [Parameter(Mandatory)]
@@ -82,33 +104,131 @@ function Get-JsonConfig {
     Get-Content $fullPath -Raw | ConvertFrom-Json
 }
 
-# -----------------------------------------------------------------------------
-# Domain discovery / prompting
-# -----------------------------------------------------------------------------
-if (-not $DomainFQDN -or -not $DomainDN) {
-    try {
-        $adDomain  = Get-ADDomain -ErrorAction Stop
-        if (-not $DomainFQDN) { $DomainFQDN = $adDomain.DNSRoot }
-        if (-not $DomainDN)   { $DomainDN   = $adDomain.DistinguishedName }
+# ---------------------------------------------------------------------------
+# Ensure domain exists: either detect or create a new forest
+# ---------------------------------------------------------------------------
+function Ensure-ActiveDirectoryDomain {
+    param(
+        [string]$DomainFQDNParam,
+        [string]$DomainDNParam
+    )
 
-        Write-Host "Auto-detected domain: FQDN=$DomainFQDN, DN=$DomainDN" -ForegroundColor Yellow
+    Write-Host "[Domain] Checking for existing Active Directory domain..." -ForegroundColor Cyan
+
+    # Try to detect an existing domain
+    try {
+        $adDomain = Get-ADDomain -ErrorAction Stop
+        Write-Host "[Domain] Existing AD domain detected: $($adDomain.DNSRoot)" -ForegroundColor Green
+
+        # If caller didn't pass DomainFQDN / DomainDN, derive from detected domain
+        if (-not $DomainFQDNParam) { $DomainFQDNParam = $adDomain.DNSRoot }
+        if (-not $DomainDNParam)   { $DomainDNParam   = $adDomain.DistinguishedName }
+
+        return @{
+            DomainFQDN = $DomainFQDNParam
+            DomainDN   = $DomainDNParam
+            CreatedNew = $false
+        }
     }
     catch {
-        Write-Warning "Unable to auto-detect AD domain; prompting for values."
-        if (-not $DomainFQDN) {
-            $DomainFQDN = Read-Host "Enter target domain FQDN (e.g., example.lab)"
+        Write-Warning "[Domain] No existing domain detected or unable to contact one."
+    }
+
+    # At this point, no domain is detected.
+    Write-Host "`nNo Active Directory domain detected." -ForegroundColor Yellow
+    $choice = Read-Host "Do you want to create a NEW AD forest on this server? (Y/N)"
+
+    if ($choice -notin @("Y","y","Yes","YES")) {
+        throw "Aborting: No domain found and user chose not to create a new forest."
+    }
+
+    # Import ADDSDeployment for Install-ADDSForest
+    Import-Module ADDSDeployment -ErrorAction Stop
+
+    # Prompt for domain details if not provided
+    if (-not $DomainFQDNParam) {
+        $DomainFQDNParam = Read-Host "Enter new domain FQDN (e.g., stark.local)"
+    }
+
+    # Derive DomainDN from FQDN if missing
+    if (-not $DomainDNParam) {
+        $parts = $DomainFQDNParam.Split(".")
+        $DomainDNParam = ($parts | ForEach-Object { "DC=$_" }) -join ","
+    }
+
+    # NetBIOS name (optional, auto-derived)
+    $defaultNetBIOS = ($DomainFQDNParam.Split(".")[0]).ToUpper()
+    if ($defaultNetBIOS.Length -gt 15) {
+        $defaultNetBIOS = $defaultNetBIOS.Substring(0,15)
+    }
+    $netbios = Read-Host "Enter NetBIOS name for the domain [`$default: $defaultNetBIOS`]"
+
+    if ([string]::IsNullOrWhiteSpace($netbios)) {
+        $netbios = $defaultNetBIOS
+    }
+
+    # Credentials for domain install
+    Write-Host "`nYou will be prompted for credentials to perform the forest install." -ForegroundColor Cyan
+    $cred = Get-Credential -Message "Enter credentials (local admin) for forest installation"
+
+    # DSRM password
+    Write-Host "`nEnter a Directory Services Restore Mode (DSRM) password." -ForegroundColor Cyan
+    $dsrmPassword = Read-Host -AsSecureString -Prompt "DSRM password"
+
+    if ($WhatIf) {
+        Write-Host "[WhatIf] Would create new AD forest with:" -ForegroundColor Yellow
+        Write-Host "  DomainFQDN : $DomainFQDNParam"
+        Write-Host "  DomainDN   : $DomainDNParam"
+        Write-Host "  NetBIOS    : $netbios"
+        Write-Host "  (Forest creation requires reboot; no further config would run until rerun.)"
+        return @{
+            DomainFQDN = $DomainFQDNParam
+            DomainDN   = $DomainDNParam
+            CreatedNew = $true
         }
-        if (-not $DomainDN) {
-            $DomainDN = Read-Host "Enter target domain DN (e.g., DC=example,DC=lab)"
-        }
+    }
+
+    Write-Host "`n[Domain] Creating new AD forest '$DomainFQDNParam' on this server..." -ForegroundColor Green
+
+    $splat = @{
+        DomainName               = $DomainFQDNParam
+        DomainNetbiosName        = $netbios
+        SafeModeAdministratorPassword = $dsrmPassword
+        InstallDNS               = $true
+        Force                    = $true
+        NoRebootOnCompletion     = $true
+        Credential               = $cred
+    }
+
+    Install-ADDSForest @splat
+
+    Write-Host "`n[Domain] New forest created. You MUST reboot this server before continuing." -ForegroundColor Yellow
+    Write-Host "After reboot, rerun this script to apply the exercise configuration." -ForegroundColor Yellow
+
+    return @{
+        DomainFQDN = $DomainFQDNParam
+        DomainDN   = $DomainDNParam
+        CreatedNew = $true
     }
 }
 
-Write-Host "Using domain: FQDN=$DomainFQDN; DN=$DomainDN`n" -ForegroundColor Cyan
+# Call domain helper
+$domainInfo = Ensure-ActiveDirectoryDomain -DomainFQDNParam $DomainFQDN -DomainDNParam $DomainDN
+$DomainFQDN = $domainInfo.DomainFQDN
+$DomainDN   = $domainInfo.DomainDN
+
+Write-Host "`nUsing domain: FQDN = $DomainFQDN; DN = $DomainDN" -ForegroundColor Cyan
+
+# If we just created a new forest in this run (and not in -WhatIf), we should NOT continue with further config.
+if ($domainInfo.CreatedNew -and -not $WhatIf) {
+    Write-Host "`n[Domain] Forest creation completed. Please reboot this server, then rerun ad_deploy.ps1 for '$ExerciseName' to continue with Sites/OUs/etc." -ForegroundColor Yellow
+    return
+}
 
 # =============================================================================
-# 1 & 2. AD Sites, Subnets, Site Links, and OUs
+# Deployment functions (unchanged from previous version, except for using $DomainFQDN/$DomainDN)
 # =============================================================================
+
 function Invoke-DeploySitesAndOUs {
     param(
         [Parameter(Mandatory)]
@@ -117,7 +237,7 @@ function Invoke-DeploySitesAndOUs {
 
     Write-Host "`n[1] Deploying AD Sites, Subnets, and Site Links..." -ForegroundColor Cyan
 
-    # --- Sites ---
+    # Sites
     foreach ($site in $StructureConfig.sites) {
         $name = $site.name
         $desc = $site.description
@@ -132,7 +252,7 @@ function Invoke-DeploySitesAndOUs {
         }
     }
 
-    # --- Subnets ---
+    # Subnets
     foreach ($subnet in $StructureConfig.subnets) {
         $cidr     = $subnet.cidr
         $siteName = $subnet.site
@@ -148,7 +268,7 @@ function Invoke-DeploySitesAndOUs {
         }
     }
 
-    # --- Site Links ---
+    # Site Links
     foreach ($link in $StructureConfig.sitelinks) {
         $name = $link.name
         $sitesIncluded = $link.sites
@@ -164,10 +284,9 @@ function Invoke-DeploySitesAndOUs {
         }
     }
 
-    # --- OUs ---
+    # OUs
     Write-Host "`n[2] Creating Organizational Units..." -ForegroundColor Cyan
 
-    # Ensure parents are created before children (sort by depth of parent_dn)
     $sortedOUs = $StructureConfig.ous | Sort-Object {
         ([regex]::Matches($_.parent_dn, 'OU=').Count)
     }
@@ -193,9 +312,6 @@ function Invoke-DeploySitesAndOUs {
     }
 }
 
-# =============================================================================
-# 3. AD Group creation
-# =============================================================================
 function Invoke-DeployGroups {
     param(
         [Parameter(Mandatory)]
@@ -212,7 +328,7 @@ function Invoke-DeployGroups {
         $scope = $group.scope
         $cat   = $group.category
         $desc  = $group.description
-        $ou    = $group.ou   # partial OU (no DC=...)
+        $ou    = $group.ou
 
         $path  = "$ou,$DomainDN"
 
@@ -233,9 +349,6 @@ function Invoke-DeployGroups {
     }
 }
 
-# =============================================================================
-# 4. AD Services (DNS, etc.)
-# =============================================================================
 function Invoke-DeployServices {
     param(
         [Parameter(Mandatory)]
@@ -244,10 +357,12 @@ function Invoke-DeployServices {
 
     Write-Host "`n[4] Configuring Services (DNS)..." -ForegroundColor Cyan
 
-    if (-not (Import-Module DnsServer -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Module -ListAvailable -Name DnsServer)) {
         Write-Warning "DnsServer module not available; skipping DNS configuration."
         return
     }
+
+    Import-Module DnsServer -ErrorAction SilentlyContinue | Out-Null
 
     # DNS Zones
     if ($ServicesConfig.dns -and $ServicesConfig.dns.zones) {
@@ -283,13 +398,8 @@ function Invoke-DeployServices {
             }
         }
     }
-
-    # Placeholder for NTP/DHCP/etc. if you choose to model them here later.
 }
 
-# =============================================================================
-# 5. AD GPO creation and linking
-# =============================================================================
 function Invoke-DeployGPOs {
     param(
         [Parameter(Mandatory)]
@@ -300,12 +410,13 @@ function Invoke-DeployGPOs {
 
     Write-Host "`n[5] Creating GPOs and Linking..." -ForegroundColor Cyan
 
-    if (-not (Import-Module GroupPolicy -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Module -ListAvailable -Name GroupPolicy)) {
         Write-Warning "GroupPolicy module not available; skipping GPO configuration."
         return
     }
 
-    # Create GPOs if not present
+    Import-Module GroupPolicy -ErrorAction SilentlyContinue | Out-Null
+
     foreach ($gpo in $GpoConfig.gpos) {
         $name        = $gpo.name
         $description = $gpo.description
@@ -320,24 +431,19 @@ function Invoke-DeployGPOs {
         }
     }
 
-    # Link GPOs to OUs
     foreach ($link in $GpoConfig.links) {
         $gpoName  = $link.gpoName
-        $targetOu = $link.targetOu   # partial DN (OU=...,OU=...)
+        $targetOu = $link.targetOu
         $enforced = [bool]$link.enforced
         $enabled  = [bool]$link.enabled
 
         $targetDn = "$targetOu,$DomainDN"
 
         Write-Host "Ensuring GPO link: $gpoName -> $targetDn" -ForegroundColor DarkCyan
-        # For simplicity, always attempt to create/refresh the link
         New-GPLink -Name $gpoName -Target $targetDn -Enforced:$enforced -LinkEnabled:$enabled -WhatIf:$WhatIf | Out-Null
     }
 }
 
-# =============================================================================
-# 6. AD Computer object creation
-# =============================================================================
 function Invoke-DeployComputers {
     param(
         [Parameter(Mandatory)]
@@ -350,7 +456,7 @@ function Invoke-DeployComputers {
 
     foreach ($comp in $ComputersConfig.computers) {
         $name = $comp.name
-        $ou   = $comp.ou       # partial OU
+        $ou   = $comp.ou
         $desc = $comp.description
 
         $path = "$ou,$DomainDN"
@@ -369,9 +475,6 @@ function Invoke-DeployComputers {
     }
 }
 
-# =============================================================================
-# 7. AD User creation and group membership
-# =============================================================================
 function Invoke-DeployUsers {
     param(
         [Parameter(Mandatory)]
@@ -400,20 +503,18 @@ function Invoke-DeployUsers {
         $country   = $user.country
         $phone     = $user.telephoneNumber
 
-        $ouPartial = $user.ou      # partial OU path
+        $ouPartial = $user.ou
         $path      = "$ouPartial,$DomainDN"
 
         $password  = $user.password
         $enabled   = [bool]$user.enabled
 
-        # Build UPN from numericId + domain
         $upn       = "$numericId@$DomainFQDN"
 
         $existing = Get-ADUser -Filter "sAMAccountName -eq '$sam'" -ErrorAction SilentlyContinue
 
         if ($existing) {
             Write-Host "User exists: $sam" -ForegroundColor DarkGray
-            # Optional: add drift-correction here if you want strict state enforcement
         }
         else {
             Write-Host "Creating user: $sam in $path" -ForegroundColor Green
