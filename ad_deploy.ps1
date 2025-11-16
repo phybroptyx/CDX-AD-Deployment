@@ -425,7 +425,7 @@ function Invoke-DeploySitesAndOUs {
             New-ADOrganizationalUnit -Name $name `
                                      -Path $parentPath `
                                      -Description $desc `
-                                     -ProtectedFromAccidentalDeletion $true `
+                                     -ProtectedFromAccidentalDeletion $false `
                                      -WhatIf:$WhatIf | Out-Null
         }
     }
