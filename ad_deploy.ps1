@@ -258,13 +258,14 @@ function Invoke-DeploySitesAndOUs {
     param(
         [Parameter(Mandatory)]
         $StructureConfig,
+
         [Parameter(Mandatory)]
         [string]$DomainDN
     )
 
     Write-Host "`n[1] Deploying AD Sites, Subnets, and Site Links..." -ForegroundColor Cyan
 
-    # Sites
+    # --- Sites ---
     foreach ($site in $StructureConfig.sites) {
         $name = $site.name
         $desc = $site.description
@@ -300,7 +301,7 @@ function Invoke-DeploySitesAndOUs {
         }
     }
 
-    # Subnets
+    # --- Subnets ---
     foreach ($subnet in $StructureConfig.subnets) {
         $cidr     = $subnet.cidr
         $siteName = $subnet.site
@@ -316,7 +317,7 @@ function Invoke-DeploySitesAndOUs {
         }
     }
 
-    # Site Links
+    # --- Site Links ---
     foreach ($link in $StructureConfig.sitelinks) {
         $name          = $link.name
         $sitesIncluded = @($link.sites)
@@ -346,8 +347,13 @@ function Invoke-DeploySitesAndOUs {
                     SitesIncluded = $allSiteNames
                 }
 
-                if ($intervalMins) {
-                    $params.ReplicationInterval = [int]$intervalMins
+                # Only set ReplicationInterval if the cmdlet supports it
+                $paramSet = (Get-Command Set-ADReplicationSiteLink).Parameters
+                if ($intervalMins -and $paramSet.ContainsKey("ReplicationInterval")) {
+                    $params["ReplicationInterval"] = [int]$intervalMins
+                }
+                elseif ($intervalMins) {
+                    Write-Warning "ReplicationInterval not supported on this OS version; skipping that setting for site link '$name'."
                 }
 
                 Set-ADReplicationSiteLink @params -WhatIf:$WhatIf
@@ -356,27 +362,36 @@ function Invoke-DeploySitesAndOUs {
         else {
             Write-Host "Creating site link: $name [sites: $($sitesIncluded -join ', ')]" -ForegroundColor Green
 
-            $params = @{
-                Name          = $name
-                SitesIncluded = $sitesIncluded
-                Cost          = $cost
-                WhatIf        = $WhatIf
+            if ($WhatIf) {
+                Write-Host "[WhatIf] Would create site link '$name' with cost $cost and sites [$($sitesIncluded -join ', ')]" -ForegroundColor Yellow
             }
+            else {
+                $params = @{
+                    Name          = $name
+                    SitesIncluded = $sitesIncluded
+                    Cost          = $cost
+                }
 
-            if ($intervalMins) {
-                $params.ReplicationInterval = [int]$intervalMins
+                # Only set ReplicationInterval if the cmdlet supports it
+                $paramSet = (Get-Command New-ADReplicationSiteLink).Parameters
+                if ($intervalMins -and $paramSet.ContainsKey("ReplicationInterval")) {
+                    $params["ReplicationInterval"] = [int]$intervalMins
+                }
+                elseif ($intervalMins) {
+                    Write-Warning "ReplicationInterval not supported on this OS version; skipping that setting for new site link '$name'."
+                }
+
+                New-ADReplicationSiteLink @params -WhatIf:$WhatIf
             }
-
-            New-ADReplicationSiteLink @params
         }
     }
 
-    # OUs
+    # --- OUs ---
     Write-Host "`n[2] Creating Organizational Units..." -ForegroundColor Cyan
 
     # Expecting structure.json OUs like:
     # { "name": "Sites", "parent_ou": "", "description": "..." }
-    # { "name": "HQ", "parent_ou": "OU=Sites", "description": "..." }
+    # { "name": "HQ",   "parent_ou": "OU=Sites", "description": "..." }
 
     $sortedOUs = $StructureConfig.ous | Sort-Object {
         if ([string]::IsNullOrWhiteSpace($_.parent_ou)) {
@@ -393,7 +408,7 @@ function Invoke-DeploySitesAndOUs {
         $desc      = $ou.description
 
         if ([string]::IsNullOrWhiteSpace($parentRel)) {
-            $parentPath = $DomainDN
+            $parentPath = $DomainDN          # top-level OU directly under domain
         }
         else {
             $parentPath = "$parentRel,$DomainDN"
