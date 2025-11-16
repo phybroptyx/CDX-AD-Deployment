@@ -1,22 +1,108 @@
 {
+{
   "dns": {
+    "zones": [
+      {
+        "name": "__AD_DOMAIN__",
+        "replicationScope": "Forest"
+      },
+
+      // StarkTower-NYC: 66.218.180.0/22 → 180–183.218.66.x
+      {
+        "name": "180.218.66.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "181.218.66.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "182.218.66.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "183.218.66.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+
+      // Malibu-Mansion: 4.150.216.0/22 → 216–219.150.4.x
+      {
+        "name": "216.150.4.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "217.150.4.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "218.150.4.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "219.150.4.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+
+      // Dallas-Branch: 50.222.72.0/22 → 72–75.222.50.x
+      {
+        "name": "72.222.50.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "73.222.50.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "74.222.50.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "75.222.50.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+
+      // Nagasaki-Facility: 14.206.0.0/22 → 0–3.206.14.x
+      {
+        "name": "0.206.14.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "1.206.14.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "2.206.14.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "3.206.14.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+
+      // Amsterdam-Hub: 37.74.124.0/22 → 124–127.74.37.x
+      {
+        "name": "124.74.37.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "125.74.37.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "126.74.37.in-addr.arpa",
+        "replicationScope": "Forest"
+      },
+      {
+        "name": "127.74.37.in-addr.arpa",
+        "replicationScope": "Forest"
+      }
+    ],
     "forwarders": [
       "1.1.1.1",
       "8.8.8.8"
-    ],
-    "zones": [
-      {
-        "name": "example.lab",
-        "type": "Primary",
-        "replicationScope": "Domain"
-      },
-      {
-        "name": "0.0.10.in-addr.arpa",
-        "type": "Primary",
-        "replicationScope": "Domain"
-      }
     ]
-  },
+  }
+},
   "ntp": {
     "servers": [
       "time.windows.com",
