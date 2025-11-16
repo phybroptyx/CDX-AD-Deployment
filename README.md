@@ -140,25 +140,25 @@ Each scenario folder must include:
 ### Dry Run (Recommended)
 
 ```powershell
-.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -WhatIf
+.ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -WhatIf
 ```
 
 ### Apply Configuration
 
 ```powershell
-.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET"
+.ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET"
 ```
 
 You may override the domain if working in a shared lab:
 
 ```powershell
-.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -DomainFQDN "stark.local" -DomainDN "DC=stark,DC=local"
+.ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -DomainFQDN "stark.local" -DomainDN "DC=stark,DC=local"
 ```
 
 Or point directly to a config path:
 
 ```powershell
-.d_deploy.ps1 -ConfigPath "D:\LabConfigs\CHILLED_ROCKET"
+.ad_deploy.ps1 -ConfigPath "D:\LabConfigs\CHILLED_ROCKET"
 ```
 
 ---
@@ -187,7 +187,7 @@ This allows:
 - Use verbose mode for more insight:
 
   ```powershell
-  .d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -Verbose
+  .ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -Verbose
   ```
 
 Check the PowerShell error output for stack traces or which object caused a failure.
