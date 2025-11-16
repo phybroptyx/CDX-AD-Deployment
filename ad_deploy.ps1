@@ -146,7 +146,6 @@ function Ensure-ActiveDirectoryDomain {
     if (-not (Get-Module -ListAvailable -Name ADDSDeployment)) {
         Write-Warning "[Domain] ADDSDeployment module is not available. Installing Active Directory Domain Services role..."
 
-        # Try installing AD DS and management tools
         try {
             Install-WindowsFeature AD-Domain-Services -IncludeManagementTools -ErrorAction Stop | Out-Null
             Write-Host "[Domain] AD DS role installed successfully. A reboot may be required." -ForegroundColor Green
@@ -156,7 +155,6 @@ function Ensure-ActiveDirectoryDomain {
         }
     }
 
-    # Attempt to load the module after installation
     try {
         Import-Module ADDSDeployment -ErrorAction Stop
         Write-Host "[Domain] ADDSDeployment module successfully loaded." -ForegroundColor Green
@@ -164,7 +162,6 @@ function Ensure-ActiveDirectoryDomain {
     catch {
         throw "ADDSDeployment module still not available after install. A reboot may be required."
     }
-
 
     # Prompt for domain details if not provided
     if (-not $DomainFQDNParam) {
@@ -188,9 +185,8 @@ function Ensure-ActiveDirectoryDomain {
         $netbios = $defaultNetBIOS
     }
 
-    # Credentials for domain install
-    Write-Host "`nYou will be prompted for credentials to perform the forest install." -ForegroundColor Cyan
-    $cred = Get-Credential -Message "Enter credentials (local admin) for forest installation"
+    Write-Host "`nIMPORTANT: This forest installation will run under the CURRENT USER context." -ForegroundColor Yellow
+    Write-Host "Ensure you are running this script as a local administrator on this server." -ForegroundColor Yellow
 
     # DSRM password
     Write-Host "`nEnter a Directory Services Restore Mode (DSRM) password." -ForegroundColor Cyan
@@ -212,13 +208,12 @@ function Ensure-ActiveDirectoryDomain {
     Write-Host "`n[Domain] Creating new AD forest '$DomainFQDNParam' on this server..." -ForegroundColor Green
 
     $splat = @{
-        DomainName               = $DomainFQDNParam
-        DomainNetbiosName        = $netbios
+        DomainName                    = $DomainFQDNParam
+        DomainNetbiosName             = $netbios
         SafeModeAdministratorPassword = $dsrmPassword
-        InstallDNS               = $true
-        Force                    = $true
-        NoRebootOnCompletion     = $true
-        Credential               = $cred
+        InstallDNS                    = $true
+        Force                         = $true
+        NoRebootOnCompletion          = $true
     }
 
     Install-ADDSForest @splat
@@ -231,7 +226,7 @@ function Ensure-ActiveDirectoryDomain {
         DomainDN   = $DomainDNParam
         CreatedNew = $true
     }
-}
+
 
 # Call domain helper
 $domainInfo = Ensure-ActiveDirectoryDomain -DomainFQDNParam $DomainFQDN -DomainDNParam $DomainDN
