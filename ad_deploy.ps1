@@ -389,29 +389,34 @@ function Invoke-DeploySitesAndOUs {
     # --- OUs ---
     Write-Host "`n[2] Creating Organizational Units..." -ForegroundColor Cyan
 
-    # Expecting structure.json OUs like:
-    # { "name": "Sites", "parent_ou": "", "description": "..." }
-    # { "name": "HQ",   "parent_ou": "OU=Sites", "description": "..." }
+    # Your structure.json OUs look like:
+    # { "name": "Sites", "parent_dn": "", "description": "..." }
+    # { "name": "HQ", "parent_dn": "OU=Sites", "description": "..." }
+    # etc.
 
+    # Sort so that parents are created before children, based on parent_dn depth
     $sortedOUs = $StructureConfig.ous | Sort-Object {
-        if ([string]::IsNullOrWhiteSpace($_.parent_ou)) {
+        if ([string]::IsNullOrWhiteSpace($_.parent_dn)) {
             0
         }
         else {
-            ([regex]::Matches($_.parent_ou, 'OU=').Count)
+            ([regex]::Matches($_.parent_dn, 'OU=').Count)
         }
     }
 
     foreach ($ou in $sortedOUs) {
-        $name      = $ou.name
-        $parentRel = $ou.parent_ou
-        $desc      = $ou.description
+        $name     = $ou.name
+        $parentDn = $ou.parent_dn
+        $desc     = $ou.description
 
-        if ([string]::IsNullOrWhiteSpace($parentRel)) {
-            $parentPath = $DomainDN          # top-level OU directly under domain
+        # Build full parent path:
+        #  - If parent_dn is empty/null => directly under the domain
+        #  - Otherwise treat parent_dn as a relative OU chain and append DomainDN
+        if ([string]::IsNullOrWhiteSpace($parentDn)) {
+            $parentPath = $DomainDN
         }
         else {
-            $parentPath = "$parentRel,$DomainDN"
+            $parentPath = "$parentDn,$DomainDN"
         }
 
         $dn = "OU=$name,$parentPath"
@@ -429,7 +434,6 @@ function Invoke-DeploySitesAndOUs {
                                      -WhatIf:$WhatIf | Out-Null
         }
     }
-}
 
 function Invoke-DeployGroups {
     param(
