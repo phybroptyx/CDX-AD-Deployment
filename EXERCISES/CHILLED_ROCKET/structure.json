@@ -49,17 +49,81 @@
     }
   ],
   "sitelinks": [
+  {
+    "name": "US-Backbone-Link",
+    "sites": ["StarkTower-NYC", "Dallas-Branch", "Malibu-Mansion"],
+    "cost": 50,
+    "replicationIntervalMins": 15
+  },
+  {
+    "name": "Trans-Atlantic-Link",
+    "sites": ["StarkTower-NYC", "Amsterdam-Hub"],
+    "cost": 90,
+    "replicationIntervalMins": 60
+  },
+  {
+    "name": "Trans-Pacific-Link",
+    "sites": ["StarkTower-NYC", "Nagasaki-Facility"],
+    "cost": 110,
+    "replicationIntervalMins": 120
+  },
+  {
+    "name": "EU-APAC-Link",
+    "sites": ["Amsterdam-Hub", "Nagasaki-Facility"],
+    "cost": 120,
+    "replicationIntervalMins": 120
+  }
+],
+  "ous": [
     {
-      "name": "Default-InterSite-Transport",
-      "sites": [
-        "StarkTower-NYC",
-        "Malibu-Mansion",
-        "Dallas-Branch",
-        "Nagasaki-Facility",
-        "Amsterdam-Hub"
-      ],
-      "cost": 100
+      "name": "Sites",
+      "parent_dn": "DC=stark,DC=local",
+      "description": "Top-level container for site-specific OUs"
+    },
+    {
+      "name": "HQ",
+      "parent_dn": "OU=Sites,DC=stark,DC=local",
+      "description": "Headquarters logical OU (maps to StarkTower-NYC site)"
+    },
+    {
+      "name": "BR1",
+      "parent_dn": "OU=Sites,DC=stark,DC=local",
+      "description": "Branch 1 logical OU (e.g., Dallas-Branch)"
+    },
+    {
+      "name": "Operations",
+      "parent_dn": "OU=HQ,OU=Sites,DC=stark,DC=local",
+      "description": "Operations department at HQ"
+    },
+    {
+      "name": "IT-Core",
+      "parent_dn": "OU=HQ,OU=Sites,DC=stark,DC=local",
+      "description": "Core IT services group at HQ"
+    },
+    {
+      "name": "Ops-Support",
+      "parent_dn": "OU=BR1,OU=Sites,DC=stark,DC=local",
+      "description": "Operations support group at Branch 1"
+    },
+    {
+      "name": "Users",
+      "parent_dn": "OU=Operations,OU=HQ,OU=Sites,DC=stark,DC=local",
+      "description": "User accounts for HQ Operations"
+    },
+    {
+      "name": "Groups",
+      "parent_dn": "OU=Operations,OU=HQ,OU=Sites,DC=stark,DC=local",
+      "description": "Security and distribution groups for HQ Operations"
+    },
+    {
+      "name": "Groups",
+      "parent_dn": "OU=IT-Core,OU=HQ,OU=Sites,DC=stark,DC=local",
+      "description": "Security and distribution groups for HQ IT-Core"
+    },
+    {
+      "name": "Users",
+      "parent_dn": "OU=Ops-Support,OU=BR1,OU=Sites,DC=stark,DC=local",
+      "description": "User accounts for Branch 1 Ops-Support"
     }
-  ],
-  "ous": []
+  ]
 }
