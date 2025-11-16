@@ -16,14 +16,14 @@
   "links": [
     {
       "gpoName": "Baseline Workstation Policy",
-      "targetOu": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites,DC=example,DC=lab",
+      "targetOu": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
       "enforced": false,
       "enabled": true,
       "linkOrder": 1
     },
     {
       "gpoName": "Baseline Server Policy",
-      "targetOu": "OU=Servers,OU=Operations,OU=HQ,OU=Sites,DC=example,DC=lab",
+      "targetOu": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
       "enforced": false,
       "enabled": true,
       "linkOrder": 1

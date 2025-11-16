@@ -2,14 +2,14 @@
   "computers": [
     {
       "name": "HQ-WKS-001",
-      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites,DC=example,DC=lab",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
       "description": "HQ user workstation 001",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-SRV-001",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites,DC=example,DC=lab",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
       "description": "HQ application server 001",
       "osVersion": "Windows Server 2019",
       "tags": [ "server", "app" ]
