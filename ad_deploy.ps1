@@ -476,7 +476,9 @@ function Invoke-DeployGroups {
 function Invoke-DeployServices {
     param(
         [Parameter(Mandatory)]
-        $ServicesConfig
+        $ServicesConfig,
+        [Parameter(Mandatory)]
+        [string]$DomainFQDN
     )
 
     Write-Host "`n[4] Configuring Services (DNS)..." -ForegroundColor Cyan
@@ -491,7 +493,16 @@ function Invoke-DeployServices {
     # DNS Zones
     if ($ServicesConfig.dns -and $ServicesConfig.dns.zones) {
         foreach ($zone in $ServicesConfig.dns.zones) {
-            $name  = $zone.name
+
+            # Allow domain-agnostic placeholder in JSON
+            $rawName = $zone.name
+            if ($rawName -eq "__AD_DOMAIN__") {
+                $name = $DomainFQDN
+            }
+            else {
+                $name = $rawName
+            }
+
             $scope = $zone.replicationScope
 
             $existingZone = Get-DnsServerZone -Name $name -ErrorAction SilentlyContinue
@@ -733,7 +744,7 @@ try {
 
     Invoke-DeploySitesAndOUs  -StructureConfig $structureConfig -DomainDN $DomainDN
     Invoke-DeployGroups       -UsersConfig $usersConfig   -DomainDN $DomainDN
-    Invoke-DeployServices     -ServicesConfig $servicesConfig
+    Invoke-DeployServices     -ServicesConfig $servicesConfig -DomainFQDN $DomainFQDN
     Invoke-DeployGPOs         -GpoConfig $gpoConfig       -DomainDN $DomainDN
     Invoke-DeployComputers    -ComputersConfig $computersConfig -DomainDN $DomainDN
     Invoke-DeployUsers        -UsersConfig $usersConfig   -DomainFQDN $DomainFQDN -DomainDN $DomainDN
