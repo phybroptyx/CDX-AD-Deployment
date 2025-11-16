@@ -7,13 +7,14 @@
         * Autodetects domain info (or uses overrides).
         * Deploys Sites, OUs, Groups, DNS, GPOs, Computers, Users from JSON.
     - If no AD domain exists:
-        * Prompts for domain details and credentials.
+        * Prompts for domain details.
+        * Installs AD DS role if needed.
         * Creates a new AD forest on this server.
         * Instructs you to reboot and rerun to apply the exercise config.
 
 .NOTES
     - Run as a local admin (pre-forest) or Domain Admin (post-forest).
-    - Requires RSAT: ActiveDirectory, ADDSDeployment, DnsServer, GroupPolicy.
+    - Designed for Windows Server 2012 R2 and later.
 #>
 
 [CmdletBinding()]
@@ -35,6 +36,10 @@ param(
     [switch]$WhatIf
 )
 
+Write-Host "=====================================================" -ForegroundColor Cyan
+Write-Host "           Active Directory Deployment Engine        " -ForegroundColor Cyan
+Write-Host "=====================================================`n" -ForegroundColor Cyan
+
 # ---------------------------------------------------------------------------
 # Resolve config path based on exercise layout
 # ---------------------------------------------------------------------------
@@ -49,7 +54,6 @@ if (-not (Test-Path $ConfigPath)) {
     throw "Config path not found: $ConfigPath"
 }
 
-Write-Host "=== Active Directory Deployment ===" -ForegroundColor Cyan
 Write-Host "Exercises Root : $ExercisesRoot"
 Write-Host "Exercise Name  : $ExerciseName"
 Write-Host "Config Path    : $ConfigPath`n"
@@ -60,19 +64,21 @@ Write-Host "Config Path    : $ConfigPath`n"
 function Test-Prerequisites {
     Write-Host "[Prereq] Checking environment..." -ForegroundColor Cyan
 
-    # Basic OS check (not bulletproof, but enough to warn)
-    $os = Get-CimInstance -ClassName Win32_OperatingSystem
-    if ($os.ProductType -eq 1) {
-        Write-Warning "This appears to be a client OS (e.g., Windows 10/11). AD DS deployment typically runs on Windows Server."
-    }
+    # Basic OS hint
+    try {
+        $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction SilentlyContinue
+        if ($os -and $os.ProductType -eq 1) {
+            Write-Warning "This appears to be a client OS (e.g., Windows 10/11). AD DS deployment typically runs on Windows Server."
+        }
+    } catch {}
 
-    # Required modules
+    # Required modules (some may be added later once roles are installed)
     $requiredModules = @("ActiveDirectory", "ADDSDeployment", "DnsServer", "GroupPolicy")
 
     foreach ($mod in $requiredModules) {
         $found = Get-Module -ListAvailable -Name $mod
         if (-not $found) {
-            Write-Warning "Required module not found: $mod. Some functionality may be skipped or fail."
+            Write-Warning "Module not currently available: $mod (may be installed later if needed)."
         }
         else {
             Write-Host "[OK] Module available: $mod" -ForegroundColor DarkGreen
@@ -84,7 +90,7 @@ function Test-Prerequisites {
 
 Test-Prerequisites
 
-# We can import AD module even pre-domain; some cmdlets (like Get-ADDomain) will fail until a forest exists.
+# Try to import AD module (may fail pre-forest; that's ok)
 Import-Module ActiveDirectory -ErrorAction SilentlyContinue | Out-Null
 
 # ---------------------------------------------------------------------------
@@ -120,9 +126,10 @@ function Ensure-ActiveDirectoryDomain {
         $adDomain = Get-ADDomain -ErrorAction Stop
         Write-Host "[Domain] Existing AD domain detected: $($adDomain.DNSRoot)" -ForegroundColor Green
 
-        # If caller didn't pass DomainFQDN / DomainDN, derive from detected domain
         if (-not $DomainFQDNParam) { $DomainFQDNParam = $adDomain.DNSRoot }
         if (-not $DomainDNParam)   { $DomainDNParam   = $adDomain.DistinguishedName }
+
+        Write-Host "=== MODE: POST-FOREST CONFIGURATION / EXERCISE DEPLOYMENT ===`n" -ForegroundColor Magenta
 
         return @{
             DomainFQDN = $DomainFQDNParam
@@ -141,6 +148,8 @@ function Ensure-ActiveDirectoryDomain {
     if ($choice -notin @("Y","y","Yes","YES")) {
         throw "Aborting: No domain found and user chose not to create a new forest."
     }
+
+    Write-Host "`n=== MODE: FOREST CREATION ===`n" -ForegroundColor Magenta
 
     # Ensure ADDSDeployment module exists; install AD DS role if missing
     if (-not (Get-Module -ListAvailable -Name ADDSDeployment)) {
@@ -186,10 +195,10 @@ function Ensure-ActiveDirectoryDomain {
     }
 
     Write-Host "`nIMPORTANT: This forest installation will run under the CURRENT USER context." -ForegroundColor Yellow
-    Write-Host "Ensure you are running this script as a local administrator on this server." -ForegroundColor Yellow
+    Write-Host "Ensure you are running this script as a local administrator on this server.`n" -ForegroundColor Yellow
 
     # DSRM password
-    Write-Host "`nEnter a Directory Services Restore Mode (DSRM) password." -ForegroundColor Cyan
+    Write-Host "Enter a Directory Services Restore Mode (DSRM) password." -ForegroundColor Cyan
     $dsrmPassword = Read-Host -AsSecureString -Prompt "DSRM password"
 
     if ($WhatIf) {
@@ -226,23 +235,23 @@ function Ensure-ActiveDirectoryDomain {
         DomainDN   = $DomainDNParam
         CreatedNew = $true
     }
+}
 
-
-# Call domain helper
+# --- Domain handling ---
 $domainInfo = Ensure-ActiveDirectoryDomain -DomainFQDNParam $DomainFQDN -DomainDNParam $DomainDN
 $DomainFQDN = $domainInfo.DomainFQDN
 $DomainDN   = $domainInfo.DomainDN
 
-Write-Host "`nUsing domain: FQDN = $DomainFQDN; DN = $DomainDN" -ForegroundColor Cyan
+Write-Host "`nUsing domain: FQDN = $DomainFQDN; DN = $DomainDN`n" -ForegroundColor Cyan
 
-# If we just created a new forest in this run (and not in -WhatIf), we should NOT continue with further config.
+# If we just created a new forest in this run (and not in -WhatIf), stop here.
 if ($domainInfo.CreatedNew -and -not $WhatIf) {
     Write-Host "`n[Domain] Forest creation completed. Please reboot this server, then rerun ad_deploy.ps1 for '$ExerciseName' to continue with Sites/OUs/etc." -ForegroundColor Yellow
     return
 }
 
 # =============================================================================
-# Deployment functions (unchanged from previous version, except for using $DomainFQDN/$DomainDN)
+# Deployment functions
 # =============================================================================
 
 function Invoke-DeploySitesAndOUs {
