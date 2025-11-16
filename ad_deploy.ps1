@@ -434,6 +434,7 @@ function Invoke-DeploySitesAndOUs {
                                      -WhatIf:$WhatIf | Out-Null
         }
     }
+}
 
 function Invoke-DeployGroups {
     param(
