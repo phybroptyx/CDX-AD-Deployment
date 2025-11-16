@@ -126,11 +126,6 @@
       "description": "User accounts for HQ Operations"
     },
     {
-      "name": "Workstations",
-      "parent_dn": "OU=IT-Core,OU=BR1,OU=Sites",
-      "description": "Workstations for Branch 1 Ops-Support"
-    },
-    {
       "name": "Groups",
       "parent_dn": "OU=IT-Core,OU=HQ,OU=Sites",
       "description": "Security and distribution groups for HQ IT-Core"
