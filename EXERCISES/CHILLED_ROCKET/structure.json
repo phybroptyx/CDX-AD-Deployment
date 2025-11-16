@@ -111,6 +111,11 @@
       "description": "User accounts for HQ Operations"
     },
     {
+      "name": "Servers",
+      "parent_dn": "OU=Operations,OU=HQ,OU=Sites",
+      "description": "User accounts for HQ Operations"
+    },
+    {
       "name": "Workstations",
       "parent_dn": "OU=Operations,OU=HQ,OU=Sites",
       "description": "User accounts for HQ Operations"
