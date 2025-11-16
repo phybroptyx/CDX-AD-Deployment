@@ -267,9 +267,32 @@ function Invoke-DeploySitesAndOUs {
         $name = $site.name
         $desc = $site.description
 
+        # Does the target site already exist?
         $existing = Get-ADReplicationSite -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
         if ($existing) {
             Write-Host "Site exists: $name" -ForegroundColor DarkGray
+            continue
+        }
+
+        # If the target site doesn't exist, check for the default site
+        $defaultSite = Get-ADReplicationSite -Filter "Name -eq 'Default-First-Site-Name'" -ErrorAction SilentlyContinue
+
+        if ($defaultSite -and $name -eq "StarkTower-NYC") {
+            Write-Host "Renaming existing 'Default-First-Site-Name' to '$name'..." -ForegroundColor Yellow
+
+            if (-not $WhatIf) {
+                # Rename the site object in Configuration partition
+                Rename-ADObject -Identity $defaultSite.DistinguishedName -NewName $name
+
+                # Refresh the object and set description if provided
+                $renamed = Get-ADReplicationSite -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
+                if ($renamed -and $desc) {
+                    Set-ADObject -Identity $renamed.DistinguishedName -Replace @{description = $desc}
+                }
+            }
+            else {
+                Write-Host "[WhatIf] Would rename 'Default-First-Site-Name' to '$name' and set description." -ForegroundColor Yellow
+            }
         }
         else {
             Write-Host "Creating site: $name" -ForegroundColor Green
@@ -295,13 +318,32 @@ function Invoke-DeploySitesAndOUs {
 
     # Site Links
     foreach ($link in $StructureConfig.sitelinks) {
-        $name = $link.name
-        $sitesIncluded = $link.sites
-        $cost = $link.cost
+        $name          = $link.name
+        $sitesIncluded = @($link.sites)
+        $cost          = $link.cost
 
         $existing = Get-ADReplicationSiteLink -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
+
         if ($existing) {
-            Write-Host "Site link exists: $name" -ForegroundColor DarkGray
+            Write-Host "Site link exists: $name - updating cost/sites as needed..." -ForegroundColor DarkGray
+
+            if ($WhatIf) {
+                Write-Host "[WhatIf] Would set cost to $cost and ensure sites [$($sitesIncluded -join ', ')] are included on link '$name'." -ForegroundColor Yellow
+            }
+            else {
+                # Merge existing sites with desired sites (idempotent, non-destructive)
+                $currentSiteDNs   = $existing.SitesIncluded
+                $currentSiteNames = $currentSiteDNs | ForEach-Object {
+                    # DN looks like: CN=<siteName>,CN=Sites,<...>
+                    ($_ -split ",")[0] -replace "^CN=", ""
+                }
+
+                $allSiteNames = ($currentSiteNames + $sitesIncluded) | Select-Object -Unique
+
+                Set-ADReplicationSiteLink -Identity $existing.DistinguishedName `
+                                          -Cost $cost `
+                                          -SitesIncluded $allSiteNames
+            }
         }
         else {
             Write-Host "Creating site link: $name [sites: $($sitesIncluded -join ', ')]" -ForegroundColor Green
