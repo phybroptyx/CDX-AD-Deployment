@@ -77,52 +77,52 @@
   "ous": [
     {
       "name": "Sites",
-      "parent_dn": "DC=stark,DC=local",
+      "parent_dn": "",
       "description": "Top-level container for site-specific OUs"
     },
     {
       "name": "HQ",
-      "parent_dn": "OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=Sites",
       "description": "Headquarters logical OU (maps to StarkTower-NYC site)"
     },
     {
       "name": "BR1",
-      "parent_dn": "OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=Sites",
       "description": "Branch 1 logical OU (e.g., Dallas-Branch)"
     },
     {
       "name": "Operations",
-      "parent_dn": "OU=HQ,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=HQ,OU=Sites",
       "description": "Operations department at HQ"
     },
     {
       "name": "IT-Core",
-      "parent_dn": "OU=HQ,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=HQ,OU=Sites",
       "description": "Core IT services group at HQ"
     },
     {
       "name": "Ops-Support",
-      "parent_dn": "OU=BR1,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=BR1,OU=Sites",
       "description": "Operations support group at Branch 1"
     },
     {
       "name": "Users",
-      "parent_dn": "OU=Operations,OU=HQ,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=Operations,OU=HQ,OU=Sites",
       "description": "User accounts for HQ Operations"
     },
     {
       "name": "Groups",
-      "parent_dn": "OU=Operations,OU=HQ,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=Operations,OU=HQ,OU=Sites",
       "description": "Security and distribution groups for HQ Operations"
     },
     {
       "name": "Groups",
-      "parent_dn": "OU=IT-Core,OU=HQ,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=IT-Core,OU=HQ,OU=Sites",
       "description": "Security and distribution groups for HQ IT-Core"
     },
     {
       "name": "Users",
-      "parent_dn": "OU=Ops-Support,OU=BR1,OU=Sites,DC=stark,DC=local",
+      "parent_dn": "OU=Ops-Support,OU=BR1,OU=Sites",
       "description": "User accounts for Branch 1 Ops-Support"
     }
   ]
