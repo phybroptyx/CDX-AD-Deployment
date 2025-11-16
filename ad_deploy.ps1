@@ -257,7 +257,9 @@ if ($domainInfo.CreatedNew -and -not $WhatIf) {
 function Invoke-DeploySitesAndOUs {
     param(
         [Parameter(Mandatory)]
-        $StructureConfig
+        $StructureConfig,
+        [Parameter(Mandatory)]
+        [string]$DomainDN
     )
 
     Write-Host "`n[1] Deploying AD Sites, Subnets, and Site Links..." -ForegroundColor Cyan
@@ -271,32 +273,30 @@ function Invoke-DeploySitesAndOUs {
         $existing = Get-ADReplicationSite -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
         if ($existing) {
             Write-Host "Site exists: $name" -ForegroundColor DarkGray
-            continue
         }
+        else {
+            # If the target site doesn't exist, check for the default site to rename
+            $defaultSite = Get-ADReplicationSite -Filter "Name -eq 'Default-First-Site-Name'" -ErrorAction SilentlyContinue
 
-        # If the target site doesn't exist, check for the default site
-        $defaultSite = Get-ADReplicationSite -Filter "Name -eq 'Default-First-Site-Name'" -ErrorAction SilentlyContinue
+            if ($defaultSite -and $name -eq "StarkTower-NYC") {
+                Write-Host "Renaming existing 'Default-First-Site-Name' to '$name'..." -ForegroundColor Yellow
 
-        if ($defaultSite -and $name -eq "StarkTower-NYC") {
-            Write-Host "Renaming existing 'Default-First-Site-Name' to '$name'..." -ForegroundColor Yellow
+                if ($WhatIf) {
+                    Write-Host "[WhatIf] Would rename 'Default-First-Site-Name' to '$name' and set description." -ForegroundColor Yellow
+                }
+                else {
+                    Rename-ADObject -Identity $defaultSite.DistinguishedName -NewName $name
 
-            if (-not $WhatIf) {
-                # Rename the site object in Configuration partition
-                Rename-ADObject -Identity $defaultSite.DistinguishedName -NewName $name
-
-                # Refresh the object and set description if provided
-                $renamed = Get-ADReplicationSite -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
-                if ($renamed -and $desc) {
-                    Set-ADObject -Identity $renamed.DistinguishedName -Replace @{description = $desc}
+                    $renamed = Get-ADReplicationSite -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
+                    if ($renamed -and $desc) {
+                        Set-ADObject -Identity $renamed.DistinguishedName -Replace @{description = $desc}
+                    }
                 }
             }
             else {
-                Write-Host "[WhatIf] Would rename 'Default-First-Site-Name' to '$name' and set description." -ForegroundColor Yellow
+                Write-Host "Creating site: $name" -ForegroundColor Green
+                New-ADReplicationSite -Name $name -Description $desc -WhatIf:$WhatIf
             }
-        }
-        else {
-            Write-Host "Creating site: $name" -ForegroundColor Green
-            New-ADReplicationSite -Name $name -Description $desc -WhatIf:$WhatIf
         }
     }
 
@@ -321,6 +321,7 @@ function Invoke-DeploySitesAndOUs {
         $name          = $link.name
         $sitesIncluded = @($link.sites)
         $cost          = $link.cost
+        $intervalMins  = $link.replicationIntervalMins
 
         $existing = Get-ADReplicationSiteLink -Filter "Name -eq '$name'" -ErrorAction SilentlyContinue
 
@@ -334,31 +335,54 @@ function Invoke-DeploySitesAndOUs {
                 # Merge existing sites with desired sites (idempotent, non-destructive)
                 $currentSiteDNs   = $existing.SitesIncluded
                 $currentSiteNames = $currentSiteDNs | ForEach-Object {
-                    # DN looks like: CN=<siteName>,CN=Sites,<...>
                     ($_ -split ",")[0] -replace "^CN=", ""
                 }
 
                 $allSiteNames = ($currentSiteNames + $sitesIncluded) | Select-Object -Unique
 
-                Set-ADReplicationSiteLink -Identity $existing.DistinguishedName `
-                                          -Cost $cost `
-                                          -SitesIncluded $allSiteNames
+                $params = @{
+                    Identity      = $existing.DistinguishedName
+                    Cost          = $cost
+                    SitesIncluded = $allSiteNames
+                }
+
+                if ($intervalMins) {
+                    $params.ReplicationInterval = [int]$intervalMins
+                }
+
+                Set-ADReplicationSiteLink @params -WhatIf:$WhatIf
             }
         }
         else {
             Write-Host "Creating site link: $name [sites: $($sitesIncluded -join ', ')]" -ForegroundColor Green
-            New-ADReplicationSiteLink -Name $name -SitesIncluded $sitesIncluded -Cost $cost -WhatIf:$WhatIf
+
+            $params = @{
+                Name          = $name
+                SitesIncluded = $sitesIncluded
+                Cost          = $cost
+                WhatIf        = $WhatIf
+            }
+
+            if ($intervalMins) {
+                $params.ReplicationInterval = [int]$intervalMins
+            }
+
+            New-ADReplicationSiteLink @params
         }
     }
 
     # OUs
     Write-Host "`n[2] Creating Organizational Units..." -ForegroundColor Cyan
 
-    # Sort by depth of parent_ou so parents are created before children
+    # Expecting structure.json OUs like:
+    # { "name": "Sites", "parent_ou": "", "description": "..." }
+    # { "name": "HQ", "parent_ou": "OU=Sites", "description": "..." }
+
     $sortedOUs = $StructureConfig.ous | Sort-Object {
         if ([string]::IsNullOrWhiteSpace($_.parent_ou)) {
             0
-        } else {
+        }
+        else {
             ([regex]::Matches($_.parent_ou, 'OU=').Count)
         }
     }
@@ -368,9 +392,7 @@ function Invoke-DeploySitesAndOUs {
         $parentRel = $ou.parent_ou
         $desc      = $ou.description
 
-        # Build the parent path (absolute DN)
         if ([string]::IsNullOrWhiteSpace($parentRel)) {
-            # Top-level OU directly under the domain
             $parentPath = $DomainDN
         }
         else {
@@ -392,6 +414,7 @@ function Invoke-DeploySitesAndOUs {
                                      -WhatIf:$WhatIf | Out-Null
         }
     }
+}
 
 function Invoke-DeployGroups {
     param(
@@ -671,7 +694,7 @@ try {
     $computersConfig = Get-JsonConfig -FileName "computers.json"
     $gpoConfig       = Get-JsonConfig -FileName "gpo.json"
 
-    Invoke-DeploySitesAndOUs  -StructureConfig $structureConfig
+    Invoke-DeploySitesAndOUs  -StructureConfig $structureConfig -DomainDN $DomainDN
     Invoke-DeployGroups       -UsersConfig $usersConfig   -DomainDN $DomainDN
     Invoke-DeployServices     -ServicesConfig $servicesConfig
     Invoke-DeployGPOs         -GpoConfig $gpoConfig       -DomainDN $DomainDN
