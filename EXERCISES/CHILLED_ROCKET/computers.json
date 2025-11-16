@@ -8,10 +8,59 @@
       "tags": [ "workstation", "hq" ]
     },
     {
+      "name": "HQ-WKS-002",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 001",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-003",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 001",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-004",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 001",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-005",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 001",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
       "name": "HQ-SRV-001",
       "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
       "description": "HQ application server 001",
       "osVersion": "Windows Server 2019",
+      "tags": [ "server", "app" ]
+    },
+    {
+      "name": "HQ-DC-02",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ Domain Controller",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app" ]
+    },
+    {
+      "name": "HQ-DC-03",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ Domain Controller",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app" ]
+    },
+    {
+      "name": "HQ-DC-04",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ Domain Controller",
+      "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app" ]
     }
   ]
