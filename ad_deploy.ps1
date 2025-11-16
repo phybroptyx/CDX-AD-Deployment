@@ -541,6 +541,7 @@ function Invoke-DeployGPOs {
 
     Import-Module GroupPolicy -ErrorAction SilentlyContinue | Out-Null
 
+    # --- Create / ensure GPOs exist ---
     foreach ($gpo in $GpoConfig.gpos) {
         $name        = $gpo.name
         $description = $gpo.description
@@ -555,16 +556,32 @@ function Invoke-DeployGPOs {
         }
     }
 
+    # --- Create / ensure GPO links ---
     foreach ($link in $GpoConfig.links) {
         $gpoName  = $link.gpoName
         $targetOu = $link.targetOu
-        $enforced = [bool]$link.enforced
-        $enabled  = [bool]$link.enabled
+
+        # JSON uses booleans; translate to the strings the cmdlet expects
+        $enforcedBool = [bool]$link.enforced
+        $enabledBool  = [bool]$link.enabled
+
+        # New-GPLink expects "Yes"/"No" for these parameters
+        $enforcedValue = if ($enforcedBool) { "Yes" } else { "No" }
+        $enabledValue  = if ($enabledBool)  { "Yes" } else { "No" }
 
         $targetDn = "$targetOu,$DomainDN"
 
-        Write-Host "Ensuring GPO link: $gpoName -> $targetDn" -ForegroundColor DarkCyan
-        New-GPLink -Name $gpoName -Target $targetDn -Enforced:$enforced -LinkEnabled:$enabled -WhatIf:$WhatIf | Out-Null
+        Write-Host "Ensuring GPO link: $gpoName -> $targetDn (Enforced=$enforcedValue, Enabled=$enabledValue)" -ForegroundColor DarkCyan
+
+        if ($WhatIf) {
+            Write-Host "[WhatIf] Would link GPO '$gpoName' to '$targetDn' (Enforced=$enforcedValue, Enabled=$enabledValue)." -ForegroundColor Yellow
+        }
+        else {
+            New-GPLink -Name $gpoName `
+                       -Target $targetDn `
+                       -Enforced $enforcedValue `
+                       -LinkEnabled $enabledValue | Out-Null
+        }
     }
 }
 
