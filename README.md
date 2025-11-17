@@ -2,15 +2,9 @@
 
 ## 1. Overview
 
-`ad_deploy.ps1` is a **generic Active Directory deployment engine** designed to build and rebuild lab/exercise environments from structured JSON configuration files.
+`ad_deploy.ps1` is a **generic Active Directory deployment engine** designed to build and rebuild lab environments from structured JSON configuration files. It works with a matching structure generator (`generate_structure.ps1`) to produce all required Active Directory design files for scalable, reusable cyber defense exercises.
 
-It is **scenario-agnostic**: all exercise-specific data (sites, OUs, users, groups, etc.) is stored under `EXERCISES/<ExerciseName>/`. The same script can be reused to deploy multiple AD scenarios by simply pointing it at a different exercise folder.
-
-**Use cases include:**
-
-- Building a full AD environment for a cyber defense exercise.
-- Rebuilding a known-good base for repeatable training deployments.
-- Iterating quickly on AD design, vulnerabilities, and multi-site scenarios.
+This framework is **scenario-agnostic**, meaning the same `ad_deploy.ps1` file can deploy multiple Active Directory environments based on the selected scenario folder.
 
 ---
 
@@ -18,23 +12,21 @@ It is **scenario-agnostic**: all exercise-specific data (sites, OUs, users, grou
 
 Recommended structure:
 
-```plaintext
-ad_deploy.ps1            # Generic deployment engine
+```
+ad_deploy.ps1              # Main AD deployment script
+generate_structure.ps1     # Optional topology generator
 
 EXERCISES/
-├── CHILLED_ROCKET/      # Scenario folder
-│   ├── structure.json   # AD Sites, Subnets, Site Links, OU layout
-│   ├── services.json    # DNS and other services configuration
-│   ├── users.json       # Users + groups + memberships
-│   ├── computers.json   # Pre-staged computer objects
-│   ├── gpo.json         # GPOs and link targets
-│   └── README.md        # (Optional) Scenario notes for this lab
+├── CHILLED_ROCKET/        # Example scenario folder
+│   ├── structure.json     # AD Sites, Subnets, Site Links, OU structure
+│   ├── services.json      # DNS Zones and other service configuration
+│   ├── users.json         # User accounts, group memberships
+│   ├── computers.json     # Computer objects (pre-staged)
+│   ├── gpo.json           # Group Policy Objects and linked targets
+│   └── README.md          # (Optional) Scenario notes
 └── <OTHER_SCENARIO>/
     └── ...
 ```
-
-The `ad_deploy.ps1` script lives **one level above** `EXERCISES/`.  
-A different domain scenario is selected simply by changing the `-ExerciseName` argument.
 
 ---
 
@@ -42,34 +34,42 @@ A different domain scenario is selected simply by changing the `-ExerciseName` a
 
 Before using this script, ensure:
 
-1. You're running on a **domain-joined Windows system**
-2. You are logged in as, or running PowerShell as, a **Domain Admin**
-3. The following RSAT modules exist on this system:
-   - `ActiveDirectory` (required)
-   - `DnsServer` (for use with `services.json`)
-   - `GroupPolicy` (if using `gpo.json`)
+1. You are logged in as (or running PowerShell as) a **Domain Admin**
+2. The target system is joined to the **target domain** or will host a new one
+3. Required PowerShell modules are installed:
+   - `ActiveDirectory` (mandatory)
+   - `DnsServer` (for DNS deployment)
+   - `GroupPolicy` (for GPO deployment)
+
+If deploying a **new forest**, the script will prompt for:
+
+- Domain FQDN (e.g., `stark.lab`)
+- Safe Mode / DSRM password
 
 ---
 
 ## 4. Script Responsibilities
 
-`ad_deploy.ps1` reads JSON configuration files from the selected `EXERCISES/<ExerciseName>/` folder and deploys Active Directory elements **in this order**:
+`ad_deploy.ps1` deploys Active Active Directory configurations based on the contents of the selected `EXERCISES/<ExerciseName>` folder.
 
-1. AD Sites, Subnets, Site Links
-2. OU Structure
-3. Groups
-4. Services (DNS Zones, Forwarders)
-5. GPOs and GPO Linking
-6. Computer Objects
-7. User Accounts & Group Memberships
+### Deployment Order
 
-> ⚠️ The deployment actions are **idempotent**, where possible.
+1. Deploy or detect AD Forest
+2. Sites, Subnets, Site Links (including cleanup of `DEFAULTIPSITELINK`)
+3. Organizational Units (OUs)
+4. Groups and Group Memberships
+5. DNS and service configuration
+6. Group Policies (linking included)
+7. Computer Objects
+8. User Accounts
+
+> 🟢 All operations are idempotent: existing objects are skipped or updated, not recreated.
 
 ---
 
 ## 5. Script Parameters
 
-```powershell
+```
 [CmdletBinding()]
 param(
     [string]$ExercisesRoot = ".\EXERCISES",
@@ -77,105 +77,83 @@ param(
     [string]$ConfigPath,
     [string]$DomainFQDN,
     [string]$DomainDN,
+    [switch]$GenerateStructure,
     [switch]$WhatIf
 )
 ```
 
-### `-ExercisesRoot`  
-The root folder that holds all exercises. Defaults to `.\EXERCISES`.
+### -GenerateStructure  
+Generates (or overwrites) `structure.json` under `EXERCISES/<ExerciseName>` by calling `generate_structure.ps1`.
 
-### `-ExerciseName`  
-The name of the scenario folder (e.g., `CHILLED_ROCKET`). Used to build `$ConfigPath` automatically if not provided.
+Useful for regenerating site and OU topology when building or modifying an exercise.
 
-### `-ConfigPath`  
-Directly specify the path where config files live. If provided, `-ExerciseName` is ignored.
-
-### `-DomainFQDN` / `-DomainDN`  
-Override domain values. Both are auto-detected by default based on current domain membership.
-
-### `-WhatIf`  
-Runs deployment in **simulation mode**. No changes are made.
+### -WhatIf  
+Runs in simulation mode. No changes are made.
 
 ---
 
 ## 6. JSON Configuration Files
 
-Each scenario folder must include:
+The following files must be present under the selected exercise folder:
 
-- `structure.json`: Sites/Subnets, Site Links, OU layout
-- `services.json`: DNS configuration
-- `users.json`: Group and User definitions
-- `computers.json`: Pre-defined computer objects
-- `gpo.json`: GPO definitions and links
+| File                | Purpose                                   |
+|---------------------|-------------------------------------------|
+| `structure.json`    | Sites/Subnets, SiteLinks, OU hierarchy    |
+| `services.json`     | DNS zones, forwarders, NTP servers        |
+| `users.json`        | Users, attributes, and group membership   |
+| `computers.json`    | Pre-staged computer objects               |
+| `gpo.json`          | GPOs and OU link targets                  |
 
-### Example: `structure.json`
-
-```json
-{
-  "sites": [
-    { "name": "StarkTower-NYC", "description": "Global HQ, NYC" }
-  ],
-  "subnets": [
-    { "cidr": "66.218.180.0/22", "site": "StarkTower-NYC", "location": "New York, USA" }
-  ],
-  "sitelinks": [
-    { "name": "Default-InterSite-Transport", "sites": ["StarkTower-NYC"], "cost": 100 }
-  ],
-  "ous": [
-    {
-      "name": "Sites",
-      "parent_dn": "DC=stark,DC=local",
-      "description": "Root OU for sites"
-    }
-  ]
-}
-```
-
-> Note: OUs use partial DN syntax — the script appends the `DomainDN` automatically.
+> ⚠️ JSON must be free of comments (`//`) and trailing commas.  
+> OUs must be specified in **relative DN format** (e.g., `"OU=Users,OU=HQ,OU=Sites"`), not full DN.
 
 ---
 
-## 7. Running the Script
+## 7. Running the Scripts
 
-### Dry Run (Recommended)
+### First-time initialization
 
-```powershell
-./ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -WhatIf
+```
+.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -GenerateStructure
 ```
 
-### Apply Configuration
+This will:
 
-```powershell
-./ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET"
+- Create the exercise folder (if it doesn’t exist)
+- Generate a fresh `structure.json` using `generate_structure.ps1`
+- Deploy the AD environment from JSON configuration
+
+### Idempotent redeployment
+
+```
+.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET"
 ```
 
-You may override the domain if working in a shared lab:
+The script will:
 
-```powershell
-./ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -DomainFQDN "stark.local" -DomainDN "DC=stark,DC=local"
+- Detect existing AD forest
+- Only add or update missing objects
+- Skip anything already correct
+
+### What-If Mode
+
+```
+.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -WhatIf
 ```
 
-Or point directly to a config path:
-
-```powershell
-./ad_deploy.ps1 -ConfigPath "D:\LabConfigs\CHILLED_ROCKET"
-```
+Use this to validate intended actions without making changes.
 
 ---
 
-## 8. Idempotency and Re-Runs
+## 8. Notes on Dynamic Structure Generation
 
-The script:
+The optional script `generate_structure.ps1` dynamically generates `structure.json` based on an AD exercise blueprint, including:
 
-- Checks if objects exist before creating them
-- Ensures user group memberships match the JSON
-- Does **not** remove objects that aren't in JSON (non-destructive)
+- Sites and Subnets (e.g., StarkTower-NYC, Malibu-Mansion)
+- AD Site Links with realistic latency and cost modeling
+- Full Organizational Unit tree with departments and sub-OUs per site
 
-This allows:
-
-- Re-running after edits to JSON
-- Validating changes via `-WhatIf`
-- Iterative or partial deployment
+When run with `-GenerateStructure`, `ad_deploy.ps1` will run the generator and deploy from the resulting structure.
 
 ---
 
@@ -211,4 +189,3 @@ You can extend this deployment engine by:
 
 This modular approach enables **rapid iteration** and **repeatable AD builds** for multiple cyber range scenarios.  
 Use it as the backbone to spin up Stark Industries today… and tear it down tomorrow. 🛡️🧨
-
