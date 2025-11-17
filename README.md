@@ -114,7 +114,7 @@ The following files must be present under the selected exercise folder:
 ### First-time initialization
 
 ```
-.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -GenerateStructure
+.\ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -GenerateStructure
 ```
 
 This will:
@@ -126,7 +126,7 @@ This will:
 ### Idempotent redeployment
 
 ```
-.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET"
+.\ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET"
 ```
 
 The script will:
@@ -138,7 +138,7 @@ The script will:
 ### What-If Mode
 
 ```
-.d_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -WhatIf
+.\ad_deploy.ps1 -ExerciseName "CHILLED_ROCKET" -WhatIf
 ```
 
 Use this to validate intended actions without making changes.
