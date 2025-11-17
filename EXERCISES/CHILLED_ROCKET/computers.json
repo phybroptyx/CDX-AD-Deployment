@@ -10,63 +10,63 @@
     {
       "name": "HQ-WKS-02",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 02",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-03",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 03",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-04",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 04",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-05",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 05",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-06",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 06",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-07",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 07",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-08",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 08",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-09",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 09",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
       "name": "HQ-WKS-10",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 01",
+      "description": "HQ user workstation 10",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
