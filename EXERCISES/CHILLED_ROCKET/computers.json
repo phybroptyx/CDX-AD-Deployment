@@ -1,67 +1,319 @@
-{
+.\a{
   "computers": [
     {
-      "name": "HQ-WKS-001",
+      "name": "HQ-WKS-01",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 001",
+      "description": "HQ user workstation 01",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
-      "name": "HQ-WKS-002",
+      "name": "HQ-WKS-02",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 001",
+      "description": "HQ user workstation 01",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
-      "name": "HQ-WKS-003",
+      "name": "HQ-WKS-03",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 001",
+      "description": "HQ user workstation 01",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
-      "name": "HQ-WKS-004",
+      "name": "HQ-WKS-04",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 001",
+      "description": "HQ user workstation 01",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
-      "name": "HQ-WKS-005",
+      "name": "HQ-WKS-05",
       "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ user workstation 001",
+      "description": "HQ user workstation 01",
       "osVersion": "Windows 10 Enterprise",
       "tags": [ "workstation", "hq" ]
     },
     {
-      "name": "HQ-SRV-001",
+      "name": "HQ-WKS-06",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 01",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-07",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 01",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-08",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 01",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-09",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 01",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-WKS-10",
+      "ou": "OU=Workstations,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ user workstation 01",
+      "osVersion": "Windows 10 Enterprise",
+      "tags": [ "workstation", "hq" ]
+    },
+    {
+      "name": "HQ-FS-01",
       "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
-      "description": "HQ application server 001",
+      "description": "HQ file server 01",
       "osVersion": "Windows Server 2019",
-      "tags": [ "server", "app" ]
+      "tags": [ "server", "app", "file" ]
     },
     {
-      "name": "HQ-DC-02",
+      "name": "HQ-FS-02",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ file server 02",
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "app", "file" ]
+    },
+    {
+      "name": "HQ-SQL-01",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ SQL server 01",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "database" ]
+    },
+    {
+      "name": "HQ-SQL-02",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ SQL server 02",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "database" ]
+    },
+    {
+      "name": "HQ-EX-01",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "HQ-EX-02",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "HQ-EX-03",
+      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "description": "HQ Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "DL-EX-01",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "DL-EX-02",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "DL-EX-03",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "AM-EX-01",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "AM-EX-02",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "AM-EX-03",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "ML-EX-01",
+      "ou": "OU=Servers,OU=Operations,OU=Malibu,OU=Sites",
+      "description": "Malibu Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "ML-EX-02",
+      "ou": "OU=Servers,OU=Operations,OU=Malibu,OU=Sites",
+      "description": "Malibu Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "NG-EX-01",
+      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "description": "Nagasaki Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "NG-EX-02",
+      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "description": "Nagasaki Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "NG-EX-03",
+      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "description": "Nagasaki Exchange Server",
+      "osVersion": "Windows Server 2012 R2",
+      "tags": [ "server", "app", "mail" ]
+    },
+    {
+      "name": "STK-DC-02",
       "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
       "description": "HQ Domain Controller",
       "osVersion": "Windows Server 2012 R2",
-      "tags": [ "server", "app" ]
+      "tags": [ "server", "dc" ]
     },
     {
-      "name": "HQ-DC-03",
+      "name": "STK-DC-03",
       "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
       "description": "HQ Domain Controller",
       "osVersion": "Windows Server 2012 R2",
-      "tags": [ "server", "app" ]
+      "tags": [ "server", "dc" ]
     },
     {
-      "name": "HQ-DC-04",
+      "name": "STK-DC-04",
       "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
       "description": "HQ Domain Controller",
-      "osVersion": "Windows Server 2012 R2",
-      "tags": [ "server", "app" ]
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-05",
+      "ou": "OU=Servers,OU=Operations,OU=Malibu,OU=Sites",
+      "description": "Malibu Domain Controller",
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-06",
+      "ou": "OU=Servers,OU=Operations,OU=Malibu,OU=Sites",
+      "description": "Malibu Domain Controller",
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-07",
+      "ou": "OU=Servers,OU=Operations,OU=Malibu,OU=Sites",
+      "description": "Malibu Domain Controller",
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-08",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Domain Controller",
+      "osVersion": "Windows Server 2008 R2",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-09",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Domain Controller",
+      "osVersion": "Windows Server 2008 R2",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-10",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Domain Controller",
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-11",
+      "ou": "OU=Servers,OU=Operations,OU=Dallas,OU=Sites",
+      "description": "Dallas Domain Controller",
+      "osVersion": "Windows Server 2019",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-12",
+      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "description": "Nagasaki Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-13",
+      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "description": "Nagasaki Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-14",
+      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "description": "Nagasaki Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-15",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-16",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-17",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
+    },
+    {
+      "name": "STK-DC-18",
+      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "description": "Amsterdam Domain Controller",
+      "osVersion": "Windows Server 2016",
+      "tags": [ "server", "dc" ]
     }
   ]
 }
