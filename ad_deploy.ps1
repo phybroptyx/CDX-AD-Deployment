@@ -32,6 +32,9 @@ param(
     [string]$DomainFQDN,
     [string]$DomainDN,
 
+    # Optional: regenerate structure.json for the exercise before deployment
+    [switch]$GenerateStructure,
+
     # Pass through to AD/DNS/GPO cmdlets
     [switch]$WhatIf
 )
@@ -50,6 +53,25 @@ if (-not $ConfigPath) {
     $ConfigPath = Join-Path -Path $ExercisesRoot -ChildPath $ExerciseName
 }
 
+# Ensure exercise folder exists if we are generating structure
+if ($GenerateStructure) {
+    if (-not (Test-Path $ConfigPath)) {
+        Write-Host "[Config] Creating exercise folder: $ConfigPath" -ForegroundColor Yellow
+        New-Item -ItemType Directory -Path $ConfigPath -Force | Out-Null
+    }
+
+    # Locate generate_structure.ps1 in the same folder as this script
+    $scriptDir     = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $generatorPath = Join-Path $scriptDir "generate_structure.ps1"
+
+    if (-not (Test-Path $generatorPath)) {
+        throw "Structure generator not found: $generatorPath"
+    }
+
+    Write-Host "[Config] Regenerating structure.json via generate_structure.ps1..." -ForegroundColor Yellow
+    & $generatorPath -ExercisesRoot $ExercisesRoot -ExerciseName $ExerciseName -ErrorAction Stop
+}
+
 if (-not (Test-Path $ConfigPath)) {
     throw "Config path not found: $ConfigPath"
 }
@@ -57,6 +79,12 @@ if (-not (Test-Path $ConfigPath)) {
 Write-Host "Exercises Root : $ExercisesRoot"
 Write-Host "Exercise Name  : $ExerciseName"
 Write-Host "Config Path    : $ConfigPath`n"
+
+# Make sure structure.json exists before we try to load it
+$structurePath = Join-Path $ConfigPath "structure.json"
+if (-not (Test-Path $structurePath)) {
+    throw "structure.json not found at expected path: $structurePath. Run with -GenerateStructure or create it manually."
+}
 
 # ---------------------------------------------------------------------------
 # Prerequisite checks
