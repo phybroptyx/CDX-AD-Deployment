@@ -414,6 +414,35 @@ function Invoke-DeploySitesAndOUs {
         }
     }
 
+    # --- Remove DEFAULTIPSITELINK if we manage our own links ---
+    try {
+        $defaultIpSiteLink = Get-ADReplicationSiteLink -Filter "Name -eq 'DEFAULTIPSITELINK'" -ErrorAction SilentlyContinue
+        if ($defaultIpSiteLink) {
+            # Only remove if it's NOT explicitly defined in structure.json
+            $weManageDefault = $false
+            if ($StructureConfig.sitelinks) {
+                $weManageDefault = $StructureConfig.sitelinks.name -contains 'DEFAULTIPSITELINK'
+            }
+
+            if (-not $weManageDefault) {
+                Write-Host "Removing auto-created site link 'DEFAULTIPSITELINK'..." -ForegroundColor Yellow
+
+                if ($WhatIf) {
+                    Write-Host "[WhatIf] Would remove DEFAULTIPSITELINK." -ForegroundColor Yellow
+                }
+                else {
+                    Remove-ADReplicationSiteLink -Identity $defaultIpSiteLink.DistinguishedName -Confirm:$false
+                }
+            }
+            else {
+                Write-Host "DEFAULTIPSITELINK is defined in structure.json; leaving it in place." -ForegroundColor DarkGray
+            }
+        }
+    }
+    catch {
+        Write-Warning "Failed to evaluate or remove DEFAULTIPSITELINK: $_"
+    }
+
     # --- OUs ---
     Write-Host "`n[2] Creating Organizational Units..." -ForegroundColor Cyan
 
