@@ -93,8 +93,9 @@
   },
   "ntp": {
     "servers": [
-      "time.windows.com",
-      "pool.ntp.org"
+      "time.nist.gov",
+      "pool.ntp.org",
+      "time.windows.com"
     ]
   }
 }
