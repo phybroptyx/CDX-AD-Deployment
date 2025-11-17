@@ -72,49 +72,49 @@
     },
     {
       "name": "HQ-FS-01",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ file server 01",
       "osVersion": "Windows Server 2019",
       "tags": [ "server", "app", "file" ]
     },
     {
       "name": "HQ-FS-02",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ file server 02",
       "osVersion": "Windows Server 2019",
       "tags": [ "server", "app", "file" ]
     },
     {
       "name": "HQ-SQL-01",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ SQL server 01",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "database" ]
     },
     {
       "name": "HQ-SQL-02",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ SQL server 02",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "database" ]
     },
     {
       "name": "HQ-EX-01",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "HQ-EX-02",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "HQ-EX-03",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
@@ -142,21 +142,21 @@
     },
     {
       "name": "AM-EX-01",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "AM-EX-02",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "AM-EX-03",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
@@ -177,42 +177,42 @@
     },
     {
       "name": "NG-EX-01",
-      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Nagasaki,OU=Sites",
       "description": "Nagasaki Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "NG-EX-02",
-      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Nagasaki,OU=Sites",
       "description": "Nagasaki Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "NG-EX-03",
-      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Nagasaki,OU=Sites",
       "description": "Nagasaki Exchange Server",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "app", "mail" ]
     },
     {
       "name": "STK-DC-02",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ Domain Controller",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-03",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ Domain Controller",
       "osVersion": "Windows Server 2012 R2",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-04",
-      "ou": "OU=Servers,OU=Operations,OU=HQ,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=HQ,OU=Sites",
       "description": "HQ Domain Controller",
       "osVersion": "Windows Server 2019",
       "tags": [ "server", "dc" ]
@@ -268,49 +268,49 @@
     },
     {
       "name": "STK-DC-12",
-      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Nagasaki,OU=Sites",
       "description": "Nagasaki Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-13",
-      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Nagasaki,OU=Sites",
       "description": "Nagasaki Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-14",
-      "ou": "OU=Servers,OU=Operations,OU=Nagasaki,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Nagasaki,OU=Sites",
       "description": "Nagasaki Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-15",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-16",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-17",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
     },
     {
       "name": "STK-DC-18",
-      "ou": "OU=Servers,OU=Operations,OU=Amsterdam,OU=Sites",
+      "ou": "OU=Servers,OU=IT-Core,OU=Amsterdam,OU=Sites",
       "description": "Amsterdam Domain Controller",
       "osVersion": "Windows Server 2016",
       "tags": [ "server", "dc" ]
