@@ -113,21 +113,20 @@ $ous += [pscustomobject]@{
 # IT-Core only at HQ, Nagasaki, Amsterdam
 # HQ has extra departments: HR, Legal, Gov-Liaison
 $siteDefinitions = @{
-    "HQ"        = @("Operations", "IT-Core", "Ops-Support", "HR", "Legal", "Gov-Liaison")
-    "Dallas"    = @("Operations", "Ops-Support")
-    "Malibu"    = @("Operations", "Ops-Support")
-    "Nagasaki"  = @("Operations", "IT-Core", "Ops-Support")
-    "Amsterdam" = @("Operations", "IT-Core", "Ops-Support")
+    "HQ"        = @("Operations", "IT-Core", "Ops-Support", "HR", "Legal", "Gov-Liaison", "Engineering", "Engineering Development", "QA", "CAD")
+    "Dallas"    = @("Operations", "Ops-Support", "Engineering", "Engineering Development", "QA", "CAD")
+    "Malibu"    = @("Operations", "Development")
+    "Nagasaki"  = @("Operations", "IT-Core", "Ops-Support", "Engineering", "Engineering Development", "QA")
+    "Amsterdam" = @("Operations", "IT-Core", "Ops-Support", "Engineering", "Engineering Development", "QA")
 }
 
 # Sub-OUs under each department (unique per department)
 $departmentSubOUs = @(
-    "Workstations",   # renamed from "Computers"
+    "Workstations",
     "Servers",
     "Users",
     "Groups",
     "ServiceAccounts",
-    "Printers",
     "Resources"
 )
 
