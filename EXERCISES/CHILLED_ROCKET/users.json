@@ -45,7 +45,7 @@
 
       "telephoneNumber": "+1 (214) 555-0203",
 
-      "ou": "OU=Users,OU=Ops-Support,OU=BR1,OU=Sites",
+      "ou": "OU=Users,OU=Ops-Support,OU=HQ,OU=Sites",
       "password": "Str0ngPassw0rd!",
       "enabled": true,
 
