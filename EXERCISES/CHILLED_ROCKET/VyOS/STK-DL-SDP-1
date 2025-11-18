@@ -1,0 +1,56 @@
+configure
+
+#######################################
+# System Identity & Time / NTP
+#######################################
+
+set system host-name 'STK-DL-SDP-1'
+set system time-zone 'America/Chicago'
+
+set service ntp server '46.244.164.88'
+set service ssh port '22'
+
+#######################################
+# Interfaces
+#######################################
+
+# eth1: Transit to core router STK-DL-CORE
+set interfaces ethernet eth1 description 'Transit to STK-DL-CORE'
+set interfaces ethernet eth1 address '192.168.203.1/30'
+
+# eth2: DMZ network
+set interfaces ethernet eth2 description 'STARK-Dallas DMZ'
+set interfaces ethernet eth2 address '50.222.71.1/24'
+
+# eth3: External (to upstream/IXP)
+set interfaces ethernet eth3 description 'STARK-Dallas external (to upstream)'
+set interfaces ethernet eth3 address '50.222.0.98/17'
+
+#######################################
+# Static Routing
+#######################################
+
+# Default route to upstream router
+set protocols static route 0.0.0.0/0 next-hop '50.222.0.67'
+
+# Route to internal summarized block via STK-DL-CORE
+# (Core router eth1 = 192.168.203.2/30)
+set protocols static route 50.222.72.0/22 next-hop '192.168.203.2'
+
+#######################################
+# NAT: Internal -> Internet
+#######################################
+
+# NAT internal summarized space 50.222.72.0/22 out eth3
+set nat source rule 10 description 'NAT internal 50.222.72.0/22 to upstream'
+set nat source rule 10 outbound-interface 'eth3'
+set nat source rule 10 source address '50.222.72.0/22'
+set nat source rule 10 translation address 'masquerade'
+
+commit
+save
+exit
+
+---------------------------------------------
+
+

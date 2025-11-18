@@ -1,0 +1,52 @@
+configure
+
+#######################################
+# System Identity & Time / NTP
+#######################################
+
+set system host-name 'STK-NG-SDP-1'
+set system time-zone 'Asia/Tokyo'
+
+set service ntp server '46.244.164.88'
+set service ssh port '22'
+
+#######################################
+# Interfaces
+#######################################
+
+# eth1: Transit to core router STK-NG-CORE
+set interfaces ethernet eth1 description 'Transit to STK-NG-CORE'
+set interfaces ethernet eth1 address '192.168.203.1/30'
+
+# eth2: DMZ network
+set interfaces ethernet eth2 description 'STARK-Nagasaki DMZ'
+set interfaces ethernet eth2 address '14.206.4.1/24'
+
+# eth3: External (to upstream/IXP)
+set interfaces ethernet eth3 description 'STARK-Nagasaki external (to upstream)'
+set interfaces ethernet eth3 address '14.206.0.174/20'
+
+#######################################
+# Static Routing
+#######################################
+
+# Default route to upstream router
+set protocols static route 0.0.0.0/0 next-hop '14.206.0.63'
+
+# Route to internal summarized block via STK-NG-CORE
+# (Core router eth1 = 192.168.203.2/30)
+set protocols static route 14.206.0.0/22 next-hop '192.168.203.2'
+
+#######################################
+# NAT: Internal -> Internet
+#######################################
+
+# NAT internal summarized space 4.150.216.0/22 out eth3
+set nat source rule 10 description 'NAT internal 14.206.0.0/22 to upstream'
+set nat source rule 10 outbound-interface 'eth3'
+set nat source rule 10 source address '14.206.0.0/22'
+set nat source rule 10 translation address 'masquerade'
+
+commit
+save
+exit
