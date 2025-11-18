@@ -114,7 +114,7 @@ $ous += [pscustomobject]@{
 # HQ has extra departments: HR, Legal, Gov-Liaison
 $siteDefinitions = @{
     "HQ"        = @("Operations", "IT-Core", "Ops-Support", "HR", "Legal", "Gov-Liaison", "Engineering", "Engineering Development", "QA", "CAD")
-    "Dallas"    = @("Operations", "Ops-Support", "Engineering", "Engineering Development", "QA", "CAD")
+    "Dallas"    = @("Operations", "IT-Core", "Ops-Support", "Engineering", "Engineering Development", "QA", "CAD")
     "Malibu"    = @("Operations", "Development")
     "Nagasaki"  = @("Operations", "IT-Core", "Ops-Support", "Engineering", "Engineering Development", "QA")
     "Amsterdam" = @("Operations", "IT-Core", "Ops-Support", "Engineering", "Engineering Development", "QA")
