@@ -43,7 +43,7 @@ set protocols static route 4.150.216.0/22 next-hop '192.168.203.2'
 
 # NAT internal summarized space 4.150.216.0/22 out eth3
 set nat source rule 10 description 'NAT internal 4.150.216.0/22 to upstream'
-set nat source rule 10 outbound-interface 'eth3'
+set nat source rule 10 outbound-interface name 'eth3'
 set nat source rule 10 source address '4.150.216.0/22'
 set nat source rule 10 translation address 'masquerade'
 
