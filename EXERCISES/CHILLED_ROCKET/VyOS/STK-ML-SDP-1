@@ -1,51 +1,84 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-ML-SDP-1'
-set system time-zone 'America/New_York'
+set system domain-name 'cdx.lab'
+set system time-zone 'America/Los_Angeles'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
+########################################
 # Interfaces
-#######################################
+# eth0: Management (pre-configured via DHCP) – do NOT modify here
+########################################
 
-# eth1: Transit to core router STK-ML-CORE
+# eth1: Transit to Malibu Core Router (STK-ML-CORE)
 set interfaces ethernet eth1 description 'Transit to STK-ML-CORE'
 set interfaces ethernet eth1 address '192.168.203.1/30'
 
-# eth2: DMZ network
-set interfaces ethernet eth2 description 'STARK-Malibu DMZ'
-set interfaces ethernet eth2 address '4.150.215.1/24'
+# eth2: Malibu DMZ – 13.248.215.0/24
+set interfaces ethernet eth2 description 'Malibu DMZ'
+set interfaces ethernet eth2 address '13.248.215.1/24'
 
-# eth3: External (to upstream/IXP)
-set interfaces ethernet eth3 description 'STARK-Malibu external (to upstream)'
-set interfaces ethernet eth3 address '4.150.0.198/15'
+# eth3: External / Upstream toward Tier-1 Seattle (EQIX-4)
+# Tier-1 (CDX-IXP-T1-EQIX-4) uses 13.248.0.174/15 on this segment
+set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-4 (Seattle)'
+set interfaces ethernet eth3 address '13.248.0.175/15'
 
-#######################################
+########################################
 # Static Routing
-#######################################
+########################################
 
-# Default route to upstream router
-set protocols static route 0.0.0.0/0 next-hop '4.150.0.86'
+# Default route to the upstream Tier-1 router (Seattle)
+set protocols static route 0.0.0.0/0 next-hop '13.248.0.174'
 
-# Route to internal summarized block via STK-ML-CORE
-# (Core router eth1 = 192.168.203.2/30)
-set protocols static route 4.150.216.0/22 next-hop '192.168.203.2'
+# Summary route for all Malibu internal Stark subnets behind STK-ML-CORE
+# ML internal summary: 13.248.216.0/22
+set protocols static route 13.248.216.0/22 next-hop '192.168.203.2'
 
-#######################################
-# NAT: Internal -> Internet
-#######################################
+########################################
+# OSPF – "Public Internet" View Only
+# - OSPF only on external segment (Area 4, Seattle region)
+# - Redistribute ONLY Malibu public internal summary (13.248.216.0/22)
+# - NO RFC1918 (192.168.204.0/30) leaked into Internet LSDB
+########################################
 
-# NAT internal summarized space 4.150.216.0/22 out eth3
-# set nat source rule 10 description 'NAT internal 4.150.216.0/22 to upstream'
-# set nat source rule 10 outbound-interface name 'eth3'
-# set nat source rule 10 source address '4.150.216.0/22'
-# set nat source rule 10 translation address 'masquerade'
+# Use external IP as OSPF router-id for clarity
+set protocols ospf parameters router-id '13.248.0.175'
+
+# Enable OSPF on the external link toward CDX-IXP-T1-EQIX-4 in Area 4
+# Tier-1 already has: "set protocols ospf area 4 network 13.248.0.0/15"
+set protocols ospf area 4 network '13.248.0.0/15'
+
+# Policy: only advertise the Malibu internal /22 summary into OSPF
+
+# Prefix-list for Malibu internal Stark public space
+set policy prefix-list ML-INTERNAL rule 10 action 'permit'
+set policy prefix-list ML-INTERNAL rule 10 prefix '13.248.216.0/22'
+
+# Explicit deny-any so no other statics are leaked
+set policy prefix-list ML-INTERNAL rule 100 action 'deny'
+set policy prefix-list ML-INTERNAL rule 100 prefix '0.0.0.0/0'
+
+# Route-map to control redistribution of static routes into OSPF
+set policy route-map OSPF-REDIST-STATIC-ML rule 10 action 'permit'
+set policy route-map OSPF-REDIST-STATIC-ML rule 10 match ip address prefix-list 'ML-INTERNAL'
+
+# Optional hard stop: deny everything else
+set policy route-map OSPF-REDIST-STATIC-ML rule 100 action 'deny'
+
+# Redistribute static routes into OSPF using the route-map
+set protocols ospf redistribute static route-map 'OSPF-REDIST-STATIC-ML'
+
+########################################
+# NAT
+# (None – this SDP is purely routed, no translation)
+########################################
+# Intentionally no "set nat ..." statements
 
 commit
 save
