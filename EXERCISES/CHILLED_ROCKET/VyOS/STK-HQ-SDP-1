@@ -1,55 +1,83 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-HQ-SDP-1'
+set system domain-name 'cdx.lab'
 set system time-zone 'America/New_York'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
+########################################
 # Interfaces
-#######################################
+# eth0: Management (pre-configured, do NOT touch here)
+########################################
 
-# eth1: Transit to core router STK-HQ-CORE
+# eth1: Transit to HQ Core Router (STK-HQ-CORE)
 set interfaces ethernet eth1 description 'Transit to STK-HQ-CORE'
 set interfaces ethernet eth1 address '192.168.203.1/30'
 
-# eth2: DMZ network
-set interfaces ethernet eth2 description 'STARK HQ DMZ'
+# eth2: HQ DMZ
+set interfaces ethernet eth2 description 'HQ DMZ'
 set interfaces ethernet eth2 address '66.218.179.1/24'
 
-# eth3: External (to upstream/IXP)
-set interfaces ethernet eth3 description 'STARK HQ external (to upstream)'
+# eth3: External / Upstream toward Tier-1 (Toronto IXP)
+set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-5 (Toronto)'
 set interfaces ethernet eth3 address '66.218.176.26/20'
 
-#######################################
+########################################
 # Static Routing
-#######################################
+########################################
 
-# Default route to upstream router
-set protocols static route 0.0.0.0/0 next-hop '66.218.176.125'
+# Default route to the upstream Tier-1 router
+set protocols static route 0.0.0.0/0 next-hop '66.218.176.25'
 
-# Route to internal summarized block via STK-HQ-CORE
-# (Core router eth1 = 192.168.203.2/30)
+# Summary route for all HQ internal Stark subnets behind STK-HQ-CORE
+# (e.g., 66.218.180.0/22 broken into multiple /26s on the core)
 set protocols static route 66.218.180.0/22 next-hop '192.168.203.2'
 
-#######################################
-# NAT: Internal -> Internet
-#######################################
+########################################
+# OSPF – “Public Internet” View Only
+# - OSPF only on external segment (Area 5, matches Toronto T1)
+# - Redistribute ONLY the Stark HQ public summary into OSPF
+# - No RFC1918 (192.168.203.0/30) leaked into the Internet LSDB
+########################################
 
-# NAT internal summarized space 66.218.180.0/22 out eth3
-# set nat source rule 10 description 'NAT internal 66.218.180.0/22 to upstream via eth3'
-# set nat source rule 10 outbound-interface name 'eth3'
-# set nat source rule 10 source address '66.218.180.0/22'
-# set nat source rule 10 translation address 'masquerade'
+# Use external IP as OSPF router-id for clarity
+set protocols ospf parameters router-id '66.218.176.26'
 
-#######################################
-# Commit & Save
-#######################################
+# Enable OSPF on the external link toward CDX-IXP-T1-EQIX-5 in Area 5
+# (Tier-1 already has "area 5 network 66.218.176.0/20")
+set protocols ospf area 5 network '66.218.176.0/20'
+
+# Policy: only advertise the HQ internal /22 summary into OSPF
+
+# Prefix-list for HQ internal Stark public space
+set policy prefix-list HQ-INTERNAL rule 10 action 'permit'
+set policy prefix-list HQ-INTERNAL rule 10 prefix '66.218.180.0/22'
+
+# Explicit deny-any to avoid leaking other statics
+set policy prefix-list HQ-INTERNAL rule 100 action 'deny'
+set policy prefix-list HQ-INTERNAL rule 100 prefix '0.0.0.0/0'
+
+# Route-map to control redistribution of static routes into OSPF
+set policy route-map OSPF-REDIST-STATIC-HQ rule 10 action 'permit'
+set policy route-map OSPF-REDIST-STATIC-HQ rule 10 match ip address prefix-list 'HQ-INTERNAL'
+
+# Optional hard stop: deny everything else
+set policy route-map OSPF-REDIST-STATIC-HQ rule 100 action 'deny'
+
+# Redistribute static routes into OSPF using the route-map
+set protocols ospf redistribute static route-map 'OSPF-REDIST-STATIC-HQ'
+
+########################################
+# NAT
+# (None – this SDP is purely routed, no translation)
+########################################
+# (Intentionally no "set nat ..." statements)
 
 commit
 save
