@@ -1,72 +1,72 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-HQ-CORE'
+set system domain-name 'cdx.lab'
 set system time-zone 'America/New_York'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
-# Transit to STK-HQ-SDP-1
-#######################################
-
-set interfaces ethernet eth10 description 'Transit to STK-HQ-SDP-1'
-set interfaces ethernet eth10 address '192.168.203.2/30'
-
-#######################################
-# Departmental Interfaces (LANs)
-#######################################
+########################################
+# Interfaces
+# eth0: Management (pre-configured via DHCP) – do NOT modify here
+########################################
 
 # eth1: Ops Support - 66.218.180.64/26
-set interfaces ethernet eth1 description 'Ops Support'
+set interfaces ethernet eth1 description 'HQ Ops Support'
 set interfaces ethernet eth1 address '66.218.180.65/26'
 
 # eth2: Core Services - 66.218.180.0/26
-set interfaces ethernet eth2 description 'Core Services'
+set interfaces ethernet eth2 description 'HQ Core Services'
 set interfaces ethernet eth2 address '66.218.180.1/26'
 
 # eth3: HR - 66.218.180.128/26
-set interfaces ethernet eth3 description 'HR'
+set interfaces ethernet eth3 description 'HQ HR'
 set interfaces ethernet eth3 address '66.218.180.129/26'
 
 # eth4: Legal - 66.218.180.192/26
-set interfaces ethernet eth4 description 'Legal'
+set interfaces ethernet eth4 description 'HQ Legal'
 set interfaces ethernet eth4 address '66.218.180.193/26'
 
 # eth5: Operations - 66.218.181.0/26
-set interfaces ethernet eth5 description 'Operations'
+set interfaces ethernet eth5 description 'HQ Operations'
 set interfaces ethernet eth5 address '66.218.181.1/26'
 
 # eth6: Engineering - 66.218.181.64/26
-set interfaces ethernet eth6 description 'Engineering'
+set interfaces ethernet eth6 description 'HQ Engineering'
 set interfaces ethernet eth6 address '66.218.181.65/26'
 
 # eth7: Engineering Workstations - 66.218.181.128/26
-set interfaces ethernet eth7 description 'Engineering Workstations'
+set interfaces ethernet eth7 description 'HQ Engineering Workstations'
 set interfaces ethernet eth7 address '66.218.181.129/26'
 
 # eth8: Quality Assurance - 66.218.181.192/26
-set interfaces ethernet eth8 description 'Quality Assurance'
+set interfaces ethernet eth8 description 'HQ Quality Assurance'
 set interfaces ethernet eth8 address '66.218.181.193/26'
 
 # eth9: CAD - 66.218.182.0/26
-set interfaces ethernet eth9 description 'CAD'
+set interfaces ethernet eth9 description 'HQ CAD'
 set interfaces ethernet eth9 address '66.218.182.1/26'
 
-#######################################
-# Routing
-#######################################
+# eth10: Transit to HQ SDP (STK-HQ-SDP-1)
+# SDP side is 192.168.203.1/30
+set interfaces ethernet eth10 description 'Transit to STK-HQ-SDP-1'
+set interfaces ethernet eth10 address '192.168.203.2/30'
 
-# Default route toward STK-HQ-SDP-1 (Internet gateway)
+########################################
+# Routing
+########################################
+
+# Default route: send all non-local traffic to SDP as the Internet gateway
 set protocols static route 0.0.0.0/0 next-hop '192.168.203.1'
 
-#######################################
+########################################
 # Commit & Save
-#######################################
+########################################
 
 commit
 save
