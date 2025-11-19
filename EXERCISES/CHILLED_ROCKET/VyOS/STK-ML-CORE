@@ -21,11 +21,11 @@ set interfaces ethernet eth3 address '192.168.203.2/30'
 # Departmental Interfaces (LANs)
 #######################################
 
-# eth1: Operations - 66.218.180.64/26
+# eth1: Operations - 4.150.216.64/23
 set interfaces ethernet eth1 description 'Operations'
 set interfaces ethernet eth1 address '4.150.216.1/23'
 
-# eth2: Development - 66.218.180.0/26
+# eth2: Development - 4.150.218.0/23
 set interfaces ethernet eth2 description 'Development'
 set interfaces ethernet eth2 address '4.150.218.1/23'
 
