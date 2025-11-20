@@ -1,60 +1,60 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-NG-CORE'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'Asia/Tokyo'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
-# Transit to STK-NG-SDP-1
-#######################################
+########################################
+# Interfaces
+# eth0: Management (already configured — DO NOT modify here)
+########################################
 
-set interfaces ethernet eth7 description 'Transit to STK-NG-SDP-1'
-set interfaces ethernet eth7 address '192.168.203.2/30'
-
-#######################################
-# Departmental Interfaces (LANs)
-#######################################
-
-# eth1: Core Services - 14.206.0.64/26
+# eth1: Core Services – 14.206.0.64/26
 set interfaces ethernet eth1 description 'Core Services'
 set interfaces ethernet eth1 address '14.206.0.65/26'
 
-# eth2: Operations - 14.206.0.0/26
+# eth2: Operations – 14.206.0.0/26
 set interfaces ethernet eth2 description 'Operations'
 set interfaces ethernet eth2 address '14.206.0.1/26'
 
-# eth3: Ops Support - 14.206.0.128/26
+# eth3: Ops Support – 14.206.0.128/26
 set interfaces ethernet eth3 description 'Ops Support'
 set interfaces ethernet eth3 address '14.206.0.129/26'
 
-# eth4: Engineering - 14.206.0.192/26
+# eth4: Engineering – 14.206.0.192/26
 set interfaces ethernet eth4 description 'Engineering'
 set interfaces ethernet eth4 address '14.206.0.193/26'
 
-# eth5: Engineering Development - 14.206.1.0/26
+# eth5: Engineering Development – 14.206.1.0/26
 set interfaces ethernet eth5 description 'Engineering Development'
 set interfaces ethernet eth5 address '14.206.1.1/26'
 
-# eth6: QA - 14.206.1.64/26
+# eth6: QA – 14.206.1.64/26
 set interfaces ethernet eth6 description 'QA'
 set interfaces ethernet eth6 address '14.206.1.65/26'
 
-#######################################
-# Routing
-#######################################
+# eth7: Transit to STK-NG-SDP-1
+# SDP side is 192.168.203.1/30
+set interfaces ethernet eth7 description 'Transit to STK-NG-SDP-1'
+set interfaces ethernet eth7 address '192.168.203.2/30'
 
-# Default route toward STK-NG-SDP-1 (Internet gateway)
+########################################
+# Routing
+########################################
+
+# Default route → SDP
 set protocols static route 0.0.0.0/0 next-hop '192.168.203.1'
 
-#######################################
+########################################
 # Commit & Save
-#######################################
+########################################
 
 commit
 save
