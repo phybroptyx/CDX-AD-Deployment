@@ -5,7 +5,7 @@ configure
 ########################################
 
 set system host-name 'STK-ML-CORE'
-set system domain-name 'cdx.lab'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'America/Los_Angeles'
 
 set service ntp server '46.244.164.88'
@@ -16,18 +16,22 @@ set service ssh port '22'
 # eth0: Management (pre-configured via DHCP) – do NOT modify here
 ########################################
 
-# eth1: Operations – 13.248.216.0/23
-set interfaces ethernet eth1 description 'Malibu Operations'
+# eth1: IT Core – 13.248.216.0/23
+set interfaces ethernet eth1 description 'Malibu IT Core'
 set interfaces ethernet eth1 address '13.248.216.1/23'
 
-# eth2: Development – 13.248.218.0/23
-set interfaces ethernet eth2 description 'Malibu Development'
-set interfaces ethernet eth2 address '13.248.218.1/23'
+# eth2: Operations – 13.248.218.0/24
+set interfaces ethernet eth2 description 'Malibu Operations'
+set interfaces ethernet eth2 address '13.248.218.1/24'
 
-# eth3: Transit to Malibu SDP (STK-ML-SDP-1)
+# eth3: Development – 13.248.219.0/24
+set interfaces ethernet eth3 description 'Malibu Development'
+set interfaces ethernet eth3 address '13.248.219.1/24'
+
+# eth4: Transit to Malibu SDP (STK-ML-SDP-1)
 # SDP side is 192.168.203.1/30
-set interfaces ethernet eth3 description 'Transit to STK-ML-SDP-1'
-set interfaces ethernet eth3 address '192.168.203.2/30'
+set interfaces ethernet eth4 description 'Transit to STK-ML-SDP-1'
+set interfaces ethernet eth4 address '192.168.203.2/30'
 
 ########################################
 # Routing
