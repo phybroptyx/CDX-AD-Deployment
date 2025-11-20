@@ -1,44 +1,48 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-DL-CORE'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'America/Chicago'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
-# Transit to STK-DL-SDP-1
-#######################################
+########################################
+# Interfaces
+# eth0: Management (pre-configured, do NOT modify here)
+########################################
 
-set interfaces ethernet eth3 description 'Transit to STK-DL-SDP-1'
-set interfaces ethernet eth3 address '192.168.203.2/30'
-
-#######################################
-# Departmental Interfaces (LANs)
-#######################################
-
-# eth1: Operations - 50.222.72.1/23
-set interfaces ethernet eth1 description 'Operations'
+# eth1: IT Core — 50.222.72.0/23
+set interfaces ethernet eth1 description 'Dallas IT Core'
 set interfaces ethernet eth1 address '50.222.72.1/23'
 
-# eth2: Development - 50.222.74.1/23
-set interfaces ethernet eth2 description 'Development'
-set interfaces ethernet eth2 address '50.222.74.1/23'
+# eth2: Operations — 50.222.74.0/24
+set interfaces ethernet eth2 description 'Dallas Operations'
+set interfaces ethernet eth2 address '50.222.74.1/24'
 
-#######################################
+# eth3: Development — 50.222.75.0/24
+set interfaces ethernet eth3 description 'Dallas Development'
+set interfaces ethernet eth3 address '50.222.75.1/24'
+
+# eth4: Transit to Dallas SDP (SDP-DL-SDP-1)
+# SDP side uses 192.168.203.1/30
+set interfaces ethernet eth4 description 'Transit to SDP-DL-SDP-1'
+set interfaces ethernet eth4 address '192.168.203.2/30'
+
+########################################
 # Routing
-#######################################
+########################################
 
-# Default route toward STK-DL-SDP-1 (Internet gateway)
+# Default route: send all non-local traffic toward the Dallas SDP
 set protocols static route 0.0.0.0/0 next-hop '192.168.203.1'
 
-#######################################
+########################################
 # Commit & Save
-#######################################
+########################################
 
 commit
 save
