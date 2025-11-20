@@ -1,56 +1,84 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
-set system host-name 'STK-DL-SDP-1'
+set system host-name 'SDP-DL-SDP-1'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'America/Chicago'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
+########################################
 # Interfaces
-#######################################
+# eth0: Management (pre-configured) – do NOT modify here
+########################################
 
-# eth1: Transit to core router STK-DL-CORE
-set interfaces ethernet eth1 description 'Transit to STK-DL-CORE'
+# eth1: Transit to Dallas Core Router (DL-CORE)
+# Core side will be 192.168.203.2/30
+set interfaces ethernet eth1 description 'Transit to DL-CORE'
 set interfaces ethernet eth1 address '192.168.203.1/30'
 
-# eth2: DMZ network
-set interfaces ethernet eth2 description 'STARK-Dallas DMZ'
+# eth2: Dallas DMZ – 50.222.71.0/24
+set interfaces ethernet eth2 description 'Dallas DMZ'
 set interfaces ethernet eth2 address '50.222.71.1/24'
 
-# eth3: External (to upstream/IXP)
-set interfaces ethernet eth3 description 'STARK-Dallas external (to upstream)'
+# eth3: External / Upstream toward Tier-1 Seattle (CDX-IXP-T1-EQIX-4)
+# Tier-1 uses 50.222.0.67/17 on this shared segment
+set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-4 (Seattle)'
 set interfaces ethernet eth3 address '50.222.0.98/17'
 
-#######################################
+########################################
 # Static Routing
-#######################################
+########################################
 
-# Default route to upstream router
+# Default route to the upstream Tier-1 router (Seattle)
 set protocols static route 0.0.0.0/0 next-hop '50.222.0.67'
 
-# Route to internal summarized block via STK-DL-CORE
-# (Core router eth1 = 192.168.203.2/30)
+# Summary route for all Dallas internal Stark subnets behind DL-CORE
+# Internal Dallas: 50.222.72.0/22 (site LANs)
 set protocols static route 50.222.72.0/22 next-hop '192.168.203.2'
 
-#######################################
-# NAT: Internal -> Internet
-#######################################
+########################################
+# OSPF – "Public Internet" View Only
+# - OSPF only on external segment (Area 4 for Seattle region)
+# - Redistribute ONLY Dallas public internal summary (50.222.72.0/22)
+# - NO RFC1918 (192.168.203.0/30) leaked into global LSDB
+########################################
 
-# NAT internal summarized space 50.222.72.0/22 out eth3
-set nat source rule 10 description 'NAT internal 50.222.72.0/22 to upstream'
-set nat source rule 10 outbound-interface name 'eth3'
-set nat source rule 10 source address '50.222.72.0/22'
-set nat source rule 10 translation address 'masquerade'
+# Use external IP as OSPF router-id for clarity
+set protocols ospf parameters router-id '50.222.0.98'
+
+# Enable OSPF on the external link toward CDX-IXP-T1-EQIX-4 in Area 4
+# Tier-1 already has: "set protocols ospf area 4 network 50.222.0.0/17"
+set protocols ospf area 4 network '50.222.0.0/17'
+
+# ---- Prefix-list: only allow Dallas internal summary to be redistributed ----
+set policy prefix-list DL-INTERNAL rule 10 action 'permit'
+set policy prefix-list DL-INTERNAL rule 10 prefix '50.222.72.0/22'
+
+# Explicit deny-any so no other statics are leaked into OSPF
+set policy prefix-list DL-INTERNAL rule 100 action 'deny'
+set policy prefix-list DL-INTERNAL rule 100 prefix '0.0.0.0/0'
+
+# ---- Route-map: filter which static routes go into OSPF ----
+set policy route-map OSPF-REDIST-STATIC-DL rule 10 action 'permit'
+set policy route-map OSPF-REDIST-STATIC-DL rule 10 match ip address prefix-list 'DL-INTERNAL'
+
+# Optional hard stop: deny everything else
+set policy route-map OSPF-REDIST-STATIC-DL rule 100 action 'deny'
+
+# Redistribute static routes into OSPF using the route-map
+set protocols ospf redistribute static route-map 'OSPF-REDIST-STATIC-DL'
+
+########################################
+# NAT
+# (None – this SDP is purely routed, no translation)
+########################################
+# Intentionally no "set nat ..." statements
 
 commit
 save
 exit
-
----------------------------------------------
-
-
