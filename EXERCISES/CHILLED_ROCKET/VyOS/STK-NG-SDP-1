@@ -1,51 +1,80 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-NG-SDP-1'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'Asia/Tokyo'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
+########################################
 # Interfaces
-#######################################
+# eth0: Management (pre-configured) – do NOT modify here
+########################################
 
-# eth1: Transit to core router STK-NG-CORE
+# eth1: Transit to Nagasaki Core Router (STK-NG-CORE)
 set interfaces ethernet eth1 description 'Transit to STK-NG-CORE'
 set interfaces ethernet eth1 address '192.168.203.1/30'
 
-# eth2: DMZ network
-set interfaces ethernet eth2 description 'STARK-Nagasaki DMZ'
+# eth2: Nagasaki DMZ – 14.206.4.0/24
+set interfaces ethernet eth2 description 'Nagasaki DMZ'
 set interfaces ethernet eth2 address '14.206.4.1/24'
 
-# eth3: External (to upstream/IXP)
-set interfaces ethernet eth3 description 'STARK-Nagasaki external (to upstream)'
-set interfaces ethernet eth3 address '14.206.0.174/20'
+# eth3: External / Upstream toward Tier-1 Seoul (CDX-IXP-T1-EQIX-10)
+# Tier-1 side: 14.206.0.63/20
+set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-10 (Seoul)'
+set interfaces ethernet eth3 address '14.206.0.62/20'
 
-#######################################
+########################################
 # Static Routing
-#######################################
+########################################
 
-# Default route to upstream router
+# Default route to upstream Tier-1
 set protocols static route 0.0.0.0/0 next-hop '14.206.0.63'
 
-# Route to internal summarized block via STK-NG-CORE
-# (Core router eth1 = 192.168.203.2/30)
+# Summary for Nagasaki internal Stark LANs behind STK-NG-CORE
+# Internal Nagasaki: 14.206.0.0/22
 set protocols static route 14.206.0.0/22 next-hop '192.168.203.2'
 
-#######################################
-# NAT: Internal -> Internet
-#######################################
+########################################
+# OSPF – "Public Internet" View Only
+# - On external segment only (Area 10 – Asia-Pacific)
+# - Redistribute ONLY Nagasaki public internal summary (14.206.0.0/22)
+# - Do NOT leak RFC1918 transit
+########################################
 
-# NAT internal summarized space 4.150.216.0/22 out eth3
-set nat source rule 10 description 'NAT internal 14.206.0.0/22 to upstream'
-set nat source rule 10 outbound-interface name 'eth3'
-set nat source rule 10 source address '14.206.0.0/22'
-set nat source rule 10 translation address 'masquerade'
+# Use external IP as router-id
+set protocols ospf parameters router-id '14.206.0.62'
+
+# Enable OSPF on the external link in Area 10
+# Tier-1 already matches 14.206.0.0/20 in Area 10
+set protocols ospf area 10 network '14.206.0.0/20'
+
+# Prefix-list: only allow Nagasaki internal summary into OSPF
+set policy prefix-list NG-INTERNAL rule 10 action 'permit'
+set policy prefix-list NG-INTERNAL rule 10 prefix '14.206.0.0/22'
+
+# Explicit deny-any so no other statics are redistributed
+set policy prefix-list NG-INTERNAL rule 100 action 'deny'
+set policy prefix-list NG-INTERNAL rule 100 prefix '0.0.0.0/0'
+
+# Route-map: filter which static routes go into OSPF
+set policy route-map OSPF-REDIST-STATIC-NG rule 10 action 'permit'
+set policy route-map OSPF-REDIST-STATIC-NG rule 10 match ip address prefix-list 'NG-INTERNAL'
+
+set policy route-map OSPF-REDIST-STATIC-NG rule 100 action 'deny'
+
+# Redistribute static routes into OSPF using this route-map
+set protocols ospf redistribute static route-map 'OSPF-REDIST-STATIC-NG'
+
+########################################
+# NAT
+# None – pure routed Internet edge
+########################################
 
 commit
 save
