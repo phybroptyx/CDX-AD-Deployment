@@ -5,7 +5,7 @@ configure
 ########################################
 
 set system host-name 'STK-HQ-SDP-1'
-set system domain-name 'cdx.lab'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'America/New_York'
 
 set service ntp server '46.244.164.88'
