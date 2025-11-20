@@ -18,7 +18,7 @@ set service ssh port '22'
 
 # eth1: Transit to Malibu Core Router (STK-ML-CORE)
 set interfaces ethernet eth1 description 'Transit to STK-ML-CORE'
-set interfaces ethernet eth1 address '192.168.204.1/30'
+set interfaces ethernet eth1 address '192.168.203.1/30'
 
 # eth2: Malibu DMZ – 13.248.215.0/24
 set interfaces ethernet eth2 description 'Malibu DMZ'
@@ -38,13 +38,13 @@ set protocols static route 0.0.0.0/0 next-hop '13.248.0.174'
 
 # Summary route for all Malibu internal Stark subnets behind STK-ML-CORE
 # ML internal summary: 13.248.216.0/22
-set protocols static route 13.248.216.0/22 next-hop '192.168.204.2'
+set protocols static route 13.248.216.0/22 next-hop '192.168.203.2'
 
 ########################################
 # OSPF – "Public Internet" View Only
 # - OSPF only on external segment (Area 4, Seattle region)
 # - Redistribute ONLY Malibu public internal summary (13.248.216.0/22)
-# - NO RFC1918 (192.168.204.0/30) leaked into Internet LSDB
+# - NO RFC1918 (192.168.203.0/30) leaked into Internet LSDB
 ########################################
 
 # Use external IP as OSPF router-id for clarity
