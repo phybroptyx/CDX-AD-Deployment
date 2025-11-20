@@ -1,51 +1,80 @@
 configure
 
-#######################################
-# System Identity & Time / NTP
-#######################################
+########################################
+# System Identity / Base Services
+########################################
 
 set system host-name 'STK-AM-SDP-1'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'Europe/Amsterdam'
 
 set service ntp server '46.244.164.88'
 set service ssh port '22'
 
-#######################################
+########################################
 # Interfaces
-#######################################
+# eth0: Management (pre-configured) – do NOT modify here
+########################################
 
-# eth1: Transit to core router STK-AM-CORE
+# eth1: Transit to Amsterdam Core Router (STK-AM-CORE)
 set interfaces ethernet eth1 description 'Transit to STK-AM-CORE'
 set interfaces ethernet eth1 address '192.168.203.1/30'
 
-# eth2: DMZ network
-set interfaces ethernet eth2 description 'STARK-Amsterdam DMZ'
+# eth2: Amsterdam DMZ – 37.74.123.0/24
+set interfaces ethernet eth2 description 'Amsterdam DMZ'
 set interfaces ethernet eth2 address '37.74.123.1/24'
 
-# eth3: External (to upstream/IXP)
-set interfaces ethernet eth3 description 'STARK-Amsterdam external (to upstream)'
-set interfaces ethernet eth3 address '37.74.0.109/16'
+# eth3: External / Upstream toward Tier-1 Amsterdam (CDX-IXP-T1-EQIX-2)
+# Tier-1 side: 37.74.0.87/16
+set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-2 (Amsterdam)'
+set interfaces ethernet eth3 address '37.74.0.88/16'
 
-#######################################
+########################################
 # Static Routing
-#######################################
+########################################
 
-# Default route to upstream router
+# Default route to the upstream Tier-1 router
 set protocols static route 0.0.0.0/0 next-hop '37.74.0.87'
 
-# Route to internal summarized block via STK-AM-CORE
-# (Core router eth1 = 192.168.203.2/30)
-set protocols static route 14.206.0.0/22 next-hop '192.168.203.2'
+# Summary route for all Amsterdam internal Stark subnets behind STK-AM-CORE
+# Internal Amsterdam: 37.74.124.0/23
+set protocols static route 37.74.124.0/23 next-hop '192.168.203.2'
 
-#######################################
-# NAT: Internal -> Internet
-#######################################
+########################################
+# OSPF – "Public Internet" View Only
+# - OSPF only on external segment (Area 2, Amsterdam region)
+# - Redistribute ONLY Amsterdam public internal summary (37.74.124.0/23)
+# - NO RFC1918 (192.168.203.0/30) leaked into global LSDB
+########################################
 
-# NAT internal summarized space 4.150.216.0/22 out eth3
-set nat source rule 10 description 'NAT internal 37.74.124.0/22 to upstream'
-set nat source rule 10 outbound-interface name 'eth3'
-set nat source rule 10 source address '37.74.124.0/22'
-set nat source rule 10 translation address 'masquerade'
+# Use external IP as OSPF router-id for clarity
+set protocols ospf parameters router-id '37.74.0.88'
+
+# Enable OSPF on the external link in Area 2
+# Tier-1 already has: "set protocols ospf area 2 network 37.74.0.0/16"
+set protocols ospf area 2 network '37.74.0.0/16'
+
+# Prefix-list: only allow Amsterdam internal summary into OSPF
+set policy prefix-list AM-INTERNAL rule 10 action 'permit'
+set policy prefix-list AM-INTERNAL rule 10 prefix '37.74.124.0/23'
+
+# Explicit deny-any so no other statics are redistributed
+set policy prefix-list AM-INTERNAL rule 100 action 'deny'
+set policy prefix-list AM-INTERNAL rule 100 prefix '0.0.0.0/0'
+
+# Route-map: filter which static routes go into OSPF
+set policy route-map OSPF-REDIST-STATIC-AM rule 10 action 'permit'
+set policy route-map OSPF-REDIST-STATIC-AM rule 10 match ip address prefix-list 'AM-INTERNAL'
+
+set policy route-map OSPF-REDIST-STATIC-AM rule 100 action 'deny'
+
+# Redistribute static routes into OSPF using this route-map
+set protocols ospf redistribute static route-map 'OSPF-REDIST-STATIC-AM'
+
+########################################
+# NAT
+# None – pure routed Internet edge
+########################################
 
 commit
 save
