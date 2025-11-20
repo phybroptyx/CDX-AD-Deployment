@@ -5,7 +5,7 @@ configure
 ########################################
 
 set system host-name 'STK-ML-SDP-1'
-set system domain-name 'cdx.lab'
+set system domain-name 'stark-industries.midgard.mrvl'
 set system time-zone 'America/Los_Angeles'
 
 set service ntp server '46.244.164.88'
@@ -13,54 +13,54 @@ set service ssh port '22'
 
 ########################################
 # Interfaces
-# eth0: Management (pre-configured via DHCP) – do NOT modify here
+# eth0: Management (pre-configured via DHCP) – do NOT touch here
 ########################################
 
 # eth1: Transit to Malibu Core Router (STK-ML-CORE)
 set interfaces ethernet eth1 description 'Transit to STK-ML-CORE'
-set interfaces ethernet eth1 address '192.168.203.1/30'
+set interfaces ethernet eth1 address '192.168.204.1/30'
 
-# eth2: Malibu DMZ – 13.248.215.0/24
+# eth2: Malibu DMZ (example public DMZ subnet)
 set interfaces ethernet eth2 description 'Malibu DMZ'
-set interfaces ethernet eth2 address '13.248.215.1/24'
+set interfaces ethernet eth2 address '4.150.215.1/24'
 
-# eth3: External / Upstream toward Tier-1 Seattle (EQIX-4)
-# Tier-1 (CDX-IXP-T1-EQIX-4) uses 13.248.0.174/15 on this segment
-set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-4 (Seattle)'
-set interfaces ethernet eth3 address '13.248.0.175/15'
+# eth3: External / Upstream toward Tier-1 (Toronto IXP) for Malibu
+# Tier-1 has 4.150.0.86/15 on this segment
+set interfaces ethernet eth3 description 'to CDX-IXP-T1-EQIX-5 (Toronto)'
+set interfaces ethernet eth3 address '4.150.0.87/15'
 
 ########################################
 # Static Routing
 ########################################
 
-# Default route to the upstream Tier-1 router (Seattle)
-set protocols static route 0.0.0.0/0 next-hop '13.248.0.174'
+# Default route to the upstream Tier-1 router
+set protocols static route 0.0.0.0/0 next-hop '4.150.0.86'
 
 # Summary route for all Malibu internal Stark subnets behind STK-ML-CORE
-# ML internal summary: 13.248.216.0/22
-set protocols static route 13.248.216.0/22 next-hop '192.168.203.2'
+# (e.g., 4.150.216.0/23 and 4.150.218.0/23)
+set protocols static route 4.150.216.0/22 next-hop '192.168.204.2'
 
 ########################################
 # OSPF – "Public Internet" View Only
-# - OSPF only on external segment (Area 4, Seattle region)
-# - Redistribute ONLY Malibu public internal summary (13.248.216.0/22)
-# - NO RFC1918 (192.168.204.0/30) leaked into Internet LSDB
+# - OSPF only on external segment (Area 5, matches Toronto T1)
+# - Redistribute ONLY the Malibu public internal summary 4.150.216.0/22
+# - No RFC1918 (192.168.204.0/30) leaked into the Internet LSDB
 ########################################
 
 # Use external IP as OSPF router-id for clarity
-set protocols ospf parameters router-id '13.248.0.175'
+set protocols ospf parameters router-id '4.150.0.87'
 
-# Enable OSPF on the external link toward CDX-IXP-T1-EQIX-4 in Area 4
-# Tier-1 already has: "set protocols ospf area 4 network 13.248.0.0/15"
-set protocols ospf area 4 network '13.248.0.0/15'
+# Enable OSPF on the external link toward CDX-IXP-T1-EQIX-5 in Area 5
+# Tier-1 already has "area 5 network 4.150.0.0/15"
+set protocols ospf area 5 network '4.150.0.0/15'
 
 # Policy: only advertise the Malibu internal /22 summary into OSPF
 
 # Prefix-list for Malibu internal Stark public space
 set policy prefix-list ML-INTERNAL rule 10 action 'permit'
-set policy prefix-list ML-INTERNAL rule 10 prefix '13.248.216.0/22'
+set policy prefix-list ML-INTERNAL rule 10 prefix '4.150.216.0/22'
 
-# Explicit deny-any so no other statics are leaked
+# Explicit deny-any so no other static routes are leaked
 set policy prefix-list ML-INTERNAL rule 100 action 'deny'
 set policy prefix-list ML-INTERNAL rule 100 prefix '0.0.0.0/0'
 
